@@ -18,12 +18,21 @@ router.post("/improve-prompt", async (req, res): Promise<void> => {
     return;
   }
 
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+
+  const send = (data: unknown) => {
+    res.write(`data: ${JSON.stringify(data)}\n\n`);
+  };
+
   try {
-    const result = await runImprovementLoop(parsed.data);
-    res.json(result);
+    await runImprovementLoop(parsed.data, (event) => send(event));
   } catch (err) {
     req.log.error({ err }, "Prompt improvement failed");
-    res.status(500).json({ error: "Prompt improvement failed. Please try again." });
+    send({ type: "error", message: "Prompt improvement failed. Please try again." });
+  } finally {
+    res.end();
   }
 });
 

@@ -18,7 +18,7 @@ Quality Bar / Success Criteria: [How to evaluate a good response]
 
 Return JSON with: final_prompt (the full structured prompt with these sections), improvement_summary (what changed most from the original).`;
 
-interface RoundResult {
+export interface RoundResult {
   round: number;
   chatgptPrompt: string;
   geminiCritique: string;
@@ -26,12 +26,20 @@ interface RoundResult {
   improvementSummary: string;
 }
 
-interface ImprovementResult {
+export interface ImprovementResult {
   originalPrompt: string;
   rounds: RoundResult[];
   finalPrompt: string;
   finalScore: number;
 }
+
+export type ProgressEvent =
+  | { type: "round_start"; round: number; totalRounds: number }
+  | { type: "chatgpt_done"; round: number }
+  | { type: "round_done"; round: number; data: RoundResult }
+  | { type: "synthesizing" }
+  | { type: "complete"; data: ImprovementResult }
+  | { type: "error"; message: string };
 
 function buildContextString(opts: {
   goal?: string;
@@ -69,12 +77,17 @@ async function improveWithChatGPT(
   const content = response.choices[0]?.message?.content ?? "{}";
   const parsed = JSON.parse(content) as {
     improved_prompt?: string;
-    improvement_summary?: string;
+    improvement_summary?: string | string[];
   };
+
+  const rawSummary = parsed.improvement_summary;
+  const summary = Array.isArray(rawSummary)
+    ? rawSummary.join(" ")
+    : rawSummary ?? "Prompt improved for clarity and specificity.";
 
   return {
     improvedPrompt: parsed.improved_prompt ?? prompt,
-    summary: parsed.improvement_summary ?? "Prompt improved for clarity and specificity.",
+    summary,
   };
 }
 
@@ -148,14 +161,18 @@ async function synthesizeFinal(
   return parsed.final_prompt ?? rounds[rounds.length - 1]?.chatgptPrompt ?? originalPrompt;
 }
 
-export async function runImprovementLoop(params: {
-  prompt: string;
-  goal?: string;
-  audience?: string;
-  tone?: string;
-  constraints?: string;
-  rounds?: number;
-}): Promise<ImprovementResult> {
+export async function runImprovementLoop(
+  params: {
+    prompt: string;
+    goal?: string;
+    audience?: string;
+    tone?: string;
+    constraints?: string;
+    rounds?: number;
+  },
+  onProgress?: (event: ProgressEvent) => void
+): Promise<ImprovementResult> {
+  const emit = (event: ProgressEvent) => onProgress?.(event);
   const roundCount = Math.min(5, Math.max(1, params.rounds ?? 3));
   const context = buildContextString({
     goal: params.goal,
@@ -170,6 +187,7 @@ export async function runImprovementLoop(params: {
 
   for (let i = 1; i <= roundCount; i++) {
     logger.info({ round: i, totalRounds: roundCount }, "Running improvement round");
+    emit({ type: "round_start", round: i, totalRounds: roundCount });
 
     const { improvedPrompt, summary } = await improveWithChatGPT(
       currentPrompt,
@@ -177,27 +195,35 @@ export async function runImprovementLoop(params: {
       lastCritique
     );
 
+    emit({ type: "chatgpt_done", round: i });
+
     const { critique, score } = await critiqueWithGemini(improvedPrompt);
 
-    rounds.push({
+    const roundResult: RoundResult = {
       round: i,
       chatgptPrompt: improvedPrompt,
       geminiCritique: critique,
       geminiScore: score,
       improvementSummary: summary,
-    });
+    };
+    rounds.push(roundResult);
+    emit({ type: "round_done", round: i, data: roundResult });
 
     currentPrompt = improvedPrompt;
     lastCritique = critique;
   }
 
+  emit({ type: "synthesizing" });
   const finalPrompt = await synthesizeFinal(params.prompt, rounds);
   const finalScore = rounds[rounds.length - 1]?.geminiScore ?? 0;
 
-  return {
+  const result: ImprovementResult = {
     originalPrompt: params.prompt,
     rounds,
     finalPrompt,
     finalScore,
   };
+
+  emit({ type: "complete", data: result });
+  return result;
 }

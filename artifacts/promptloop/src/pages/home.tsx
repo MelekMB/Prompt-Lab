@@ -209,8 +209,8 @@ export function Home() {
 
   const getCurrentRoundLabel = (): string => {
     switch (phase.status) {
-      case "round_start": return `ChatGPT rewriting prompt...`;
-      case "chatgpt_done": return `Gemini critiquing response...`;
+      case "round_start": return `AI rewriting prompt...`;
+      case "chatgpt_done": return `Evaluating response quality...`;
       case "round_done": return `Round ${phase.round} complete ✓`;
       case "synthesizing": return "Synthesizing final prompt...";
       default: return "Processing...";

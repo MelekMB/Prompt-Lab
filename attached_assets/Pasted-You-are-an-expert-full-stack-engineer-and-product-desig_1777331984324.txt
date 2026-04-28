@@ -1,0 +1,127 @@
+You are an expert full-stack engineer and product designer. Build me a clean, modern web app called “PromptLoop” that helps users improve a prompt by using both OpenAI/ChatGPT and Google Gemini APIs.
+
+Core idea:
+The user enters an initial prompt and describes the goal/output they want. The app then runs an iterative “prompt improvement loop” where ChatGPT improves the prompt, Gemini critiques it, ChatGPT revises it again, Gemini scores it, and the system repeats this for a few rounds until the prompt becomes clearer, more specific, and more likely to produce a high-quality result.
+
+Build this as a production-quality Replit app.
+
+Tech stack:
+- Use Next.js or React for the frontend
+- Use a simple backend API route/server function for calling the APIs
+- Use environment variables for API keys:
+  - OPENAI_API_KEY
+  - GEMINI_API_KEY
+- Do not hardcode API keys
+- Make the UI polished, simple, and SaaS-like
+- Mobile responsive
+- Include loading states, error handling, and copy buttons
+
+Main user flow:
+1. User lands on the homepage.
+2. They see a clear headline:
+   “Turn rough prompts into high-performing prompts.”
+3. They paste their rough prompt into a large textarea.
+4. They optionally fill in:
+   - Desired output
+   - Target audience
+   - Tone/style
+   - Constraints
+   - Number of improvement rounds, default 3
+5. They click “Improve Prompt.”
+6. The app starts the improvement loop:
+   - Round 1:
+     - ChatGPT rewrites the user prompt to make it clearer, more specific, and more effective.
+     - Gemini reviews the rewritten prompt and gives critique, missing details, ambiguity, and a score from 1–10.
+   - Round 2:
+     - ChatGPT uses Gemini’s critique to improve the prompt again.
+     - Gemini critiques and scores again.
+   - Continue until the selected number of rounds is complete.
+7. At the end, show:
+   - Final optimized prompt
+   - Explanation of what changed
+   - Score progression by round
+   - All intermediate versions
+   - Copy final prompt button
+   - “Run another improvement” button
+
+Important:
+The app should not just make the prompt longer. It should make the prompt more precise, structured, and outcome-driven. It should remove ambiguity, add useful context, define the role/persona, define output format, define constraints, and include success criteria.
+
+UI requirements:
+- Clean modern layout
+- Use cards for each round
+- Show:
+  - Original prompt
+  - ChatGPT improved version
+  - Gemini critique
+  - Gemini score
+- Final prompt should be visually highlighted
+- Add a simple progress indicator while rounds are running
+- Add a “copy” button beside every prompt version
+- Use a professional color palette, preferably dark mode with purple/blue accents
+
+Backend logic:
+Create an endpoint like `/api/improve-prompt`.
+
+Input:
+{
+  "prompt": string,
+  "goal": string,
+  "audience": string,
+  "tone": string,
+  "constraints": string,
+  "rounds": number
+}
+
+Output:
+{
+  "originalPrompt": string,
+  "rounds": [
+    {
+      "round": number,
+      "chatgptPrompt": string,
+      "geminiCritique": string,
+      "geminiScore": number,
+      "improvementSummary": string
+    }
+  ],
+  "finalPrompt": string,
+  "finalScore": number
+}
+
+The backend should:
+1. Validate the input.
+2. Limit rounds to a safe range, for example 1–5.
+3. Call OpenAI first to improve the prompt.
+4. Call Gemini to critique and score the prompt.
+5. Feed Gemini’s critique back into OpenAI for the next round.
+6. Return structured JSON.
+7. Handle API errors gracefully.
+
+Use this system prompt for ChatGPT prompt improvement:
+
+“You are an elite prompt engineer. Your job is to transform rough user prompts into clear, precise, high-performing prompts. Improve the prompt by adding role/persona, context, task definition, constraints, output format, evaluation criteria, and any missing assumptions. Do not add fake facts. Do not make the prompt unnecessarily long. Preserve the user’s original intent. Return JSON with: improved_prompt, improvement_summary.”
+
+Use this system prompt for Gemini critique:
+
+“You are a strict prompt evaluator. Review the prompt for clarity, specificity, completeness, ambiguity, constraints, output format, and likelihood of producing a useful result. Give constructive critique and a score from 1 to 10. Return JSON with: critique, missing_details, score, suggested_next_changes.”
+
+Add a final synthesis step:
+After all rounds, ask ChatGPT to produce the final optimized prompt using the best parts of all rounds and Gemini’s critiques.
+
+Final optimized prompt should include sections:
+- Role
+- Context
+- Task
+- Inputs
+- Requirements
+- Output format
+- Quality bar / success criteria
+
+Also create:
+- `.env.example` with placeholders for OPENAI_API_KEY and GEMINI_API_KEY
+- README.md with setup instructions
+- Basic error messages if keys are missing
+- A simple footer saying “Built for prompt optimization experiments.”
+
+Make sure the app runs successfully in Replit without requiring advanced setup.

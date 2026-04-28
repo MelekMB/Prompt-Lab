@@ -14,3 +14,114 @@ import * as zod from "zod";
 export const HealthCheckResponse = zod.object({
   status: zod.string(),
 });
+
+/**
+ * @summary Run iterative prompt improvement loop using ChatGPT and Gemini
+ */
+export const improvePromptBodyRoundsMax = 5;
+
+export const ImprovePromptBody = zod.object({
+  prompt: zod.string(),
+  goal: zod.string().optional(),
+  audience: zod.string().optional(),
+  tone: zod.string().optional(),
+  constraints: zod.string().optional(),
+  rounds: zod.number().min(1).max(improvePromptBodyRoundsMax).optional(),
+});
+
+export const ImprovePromptResponse = zod.object({
+  originalPrompt: zod.string(),
+  rounds: zod.array(
+    zod.object({
+      round: zod.number(),
+      chatgptPrompt: zod.string(),
+      geminiCritique: zod.string(),
+      geminiScore: zod.number(),
+      improvementSummary: zod.string(),
+    }),
+  ),
+  finalPrompt: zod.string(),
+  finalScore: zod.number(),
+});
+
+/**
+ * @summary List past improvement sessions
+ */
+export const ListSessionsResponseItem = zod.object({
+  id: zod.number(),
+  originalPrompt: zod.string(),
+  finalScore: zod.number(),
+  roundCount: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+export const ListSessionsResponse = zod.array(ListSessionsResponseItem);
+
+/**
+ * @summary Save an improvement session result
+ */
+export const CreateSessionBody = zod.object({
+  originalPrompt: zod.string(),
+  goal: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  tone: zod.string().nullish(),
+  constraints: zod.string().nullish(),
+  finalPrompt: zod.string(),
+  finalScore: zod.number(),
+  rounds: zod.array(
+    zod.object({
+      round: zod.number(),
+      chatgptPrompt: zod.string(),
+      geminiCritique: zod.string(),
+      geminiScore: zod.number(),
+      improvementSummary: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Get a session by ID with all rounds
+ */
+export const GetSessionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const GetSessionResponse = zod.object({
+  id: zod.number(),
+  originalPrompt: zod.string(),
+  goal: zod.string().nullish(),
+  audience: zod.string().nullish(),
+  tone: zod.string().nullish(),
+  constraints: zod.string().nullish(),
+  finalPrompt: zod.string(),
+  finalScore: zod.number(),
+  roundCount: zod.number(),
+  createdAt: zod.coerce.date(),
+  rounds: zod.array(
+    zod.object({
+      id: zod.number(),
+      sessionId: zod.number(),
+      round: zod.number(),
+      chatgptPrompt: zod.string(),
+      geminiCritique: zod.string(),
+      geminiScore: zod.number(),
+      improvementSummary: zod.string(),
+    }),
+  ),
+});
+
+/**
+ * @summary Delete a session
+ */
+export const DeleteSessionParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Get aggregate stats across all sessions
+ */
+export const GetSessionStatsResponse = zod.object({
+  totalSessions: zod.number(),
+  averageFinalScore: zod.number(),
+  averageScoreImprovement: zod.number(),
+  topFinalScore: zod.number(),
+});

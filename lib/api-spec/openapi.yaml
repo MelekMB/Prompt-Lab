@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: promptloop
+    description: Prompt improvement operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,127 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /improve-prompt:
+    post:
+      operationId: improvePrompt
+      tags: [promptloop]
+      summary: Run iterative prompt improvement loop using ChatGPT and Gemini
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ImprovePromptBody"
+      responses:
+        "200":
+          description: Improvement result with all rounds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImprovePromptResponse"
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptLoopError"
+        "500":
+          description: Server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptLoopError"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [promptloop]
+      summary: List past improvement sessions
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionSummary"
+    post:
+      operationId: createSession
+      tags: [promptloop]
+      summary: Save an improvement session result
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionBody"
+      responses:
+        "201":
+          description: Created session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [promptloop]
+      summary: Get a session by ID with all rounds
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session with rounds
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionWithRounds"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptLoopError"
+    delete:
+      operationId: deleteSession
+      tags: [promptloop]
+      summary: Delete a session
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PromptLoopError"
+
+  /sessions/stats:
+    get:
+      operationId: getSessionStats
+      tags: [promptloop]
+      summary: Get aggregate stats across all sessions
+      responses:
+        "200":
+          description: Aggregate statistics
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionStats"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +157,229 @@ components:
       required:
         - status
 
+    ImprovePromptBody:
+      type: object
+      properties:
+        prompt:
+          type: string
+        goal:
+          type: string
+        audience:
+          type: string
+        tone:
+          type: string
+        constraints:
+          type: string
+        rounds:
+          type: integer
+          minimum: 1
+          maximum: 5
+      required:
+        - prompt
+
+    PromptRound:
+      type: object
+      properties:
+        round:
+          type: integer
+        chatgptPrompt:
+          type: string
+        geminiCritique:
+          type: string
+        geminiScore:
+          type: number
+        improvementSummary:
+          type: string
+      required:
+        - round
+        - chatgptPrompt
+        - geminiCritique
+        - geminiScore
+        - improvementSummary
+
+    ImprovePromptResponse:
+      type: object
+      properties:
+        originalPrompt:
+          type: string
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptRound"
+        finalPrompt:
+          type: string
+        finalScore:
+          type: number
+      required:
+        - originalPrompt
+        - rounds
+        - finalPrompt
+        - finalScore
+
+    CreateSessionBody:
+      type: object
+      properties:
+        originalPrompt:
+          type: string
+        goal:
+          type: ["string", "null"]
+        audience:
+          type: ["string", "null"]
+        tone:
+          type: ["string", "null"]
+        constraints:
+          type: ["string", "null"]
+        finalPrompt:
+          type: string
+        finalScore:
+          type: number
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/PromptRound"
+      required:
+        - originalPrompt
+        - finalPrompt
+        - finalScore
+        - rounds
+
+    SessionSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        originalPrompt:
+          type: string
+        finalScore:
+          type: number
+        roundCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - originalPrompt
+        - finalScore
+        - roundCount
+        - createdAt
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+        originalPrompt:
+          type: string
+        goal:
+          type: ["string", "null"]
+        audience:
+          type: ["string", "null"]
+        tone:
+          type: ["string", "null"]
+        constraints:
+          type: ["string", "null"]
+        finalPrompt:
+          type: string
+        finalScore:
+          type: number
+        roundCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - originalPrompt
+        - finalPrompt
+        - finalScore
+        - roundCount
+        - createdAt
+
+    SessionWithRounds:
+      type: object
+      properties:
+        id:
+          type: integer
+        originalPrompt:
+          type: string
+        goal:
+          type: ["string", "null"]
+        audience:
+          type: ["string", "null"]
+        tone:
+          type: ["string", "null"]
+        constraints:
+          type: ["string", "null"]
+        finalPrompt:
+          type: string
+        finalScore:
+          type: number
+        roundCount:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+        rounds:
+          type: array
+          items:
+            $ref: "#/components/schemas/StoredRound"
+      required:
+        - id
+        - originalPrompt
+        - finalPrompt
+        - finalScore
+        - roundCount
+        - createdAt
+        - rounds
+
+    StoredRound:
+      type: object
+      properties:
+        id:
+          type: integer
+        sessionId:
+          type: integer
+        round:
+          type: integer
+        chatgptPrompt:
+          type: string
+        geminiCritique:
+          type: string
+        geminiScore:
+          type: number
+        improvementSummary:
+          type: string
+      required:
+        - id
+        - sessionId
+        - round
+        - chatgptPrompt
+        - geminiCritique
+        - geminiScore
+        - improvementSummary
+
+    SessionStats:
+      type: object
+      properties:
+        totalSessions:
+          type: integer
+        averageFinalScore:
+          type: number
+        averageScoreImprovement:
+          type: number
+        topFinalScore:
+          type: number
+      required:
+        - totalSessions
+        - averageFinalScore
+        - averageScoreImprovement
+        - topFinalScore
+
+    PromptLoopError:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error

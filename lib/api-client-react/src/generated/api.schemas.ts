@@ -8,3 +8,110 @@
 export interface HealthStatus {
   status: string;
 }
+
+export interface ImprovePromptBody {
+  prompt: string;
+  goal?: string;
+  audience?: string;
+  tone?: string;
+  constraints?: string;
+  /**
+   * @minimum 1
+   * @maximum 5
+   */
+  rounds?: number;
+}
+
+export interface PromptRound {
+  round: number;
+  chatgptPrompt: string;
+  geminiCritique: string;
+  geminiScore: number;
+  improvementSummary: string;
+}
+
+export interface ImprovePromptResponse {
+  originalPrompt: string;
+  rounds: PromptRound[];
+  finalPrompt: string;
+  finalScore: number;
+}
+
+export interface CreateSessionBody {
+  originalPrompt: string;
+  /** @nullable */
+  goal?: string | null;
+  /** @nullable */
+  audience?: string | null;
+  /** @nullable */
+  tone?: string | null;
+  /** @nullable */
+  constraints?: string | null;
+  finalPrompt: string;
+  finalScore: number;
+  rounds: PromptRound[];
+}
+
+export interface SessionSummary {
+  id: number;
+  originalPrompt: string;
+  finalScore: number;
+  roundCount: number;
+  createdAt: string;
+}
+
+export interface Session {
+  id: number;
+  originalPrompt: string;
+  /** @nullable */
+  goal?: string | null;
+  /** @nullable */
+  audience?: string | null;
+  /** @nullable */
+  tone?: string | null;
+  /** @nullable */
+  constraints?: string | null;
+  finalPrompt: string;
+  finalScore: number;
+  roundCount: number;
+  createdAt: string;
+}
+
+export interface StoredRound {
+  id: number;
+  sessionId: number;
+  round: number;
+  chatgptPrompt: string;
+  geminiCritique: string;
+  geminiScore: number;
+  improvementSummary: string;
+}
+
+export interface SessionWithRounds {
+  id: number;
+  originalPrompt: string;
+  /** @nullable */
+  goal?: string | null;
+  /** @nullable */
+  audience?: string | null;
+  /** @nullable */
+  tone?: string | null;
+  /** @nullable */
+  constraints?: string | null;
+  finalPrompt: string;
+  finalScore: number;
+  roundCount: number;
+  createdAt: string;
+  rounds: StoredRound[];
+}
+
+export interface SessionStats {
+  totalSessions: number;
+  averageFinalScore: number;
+  averageScoreImprovement: number;
+  topFinalScore: number;
+}
+
+export interface PromptLoopError {
+  error: string;
+}

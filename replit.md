@@ -20,13 +20,22 @@ pnpm workspace monorepo using TypeScript. **PromptLoop** — an AI SaaS app wher
 
 ## Architecture
 
-- `artifacts/api-server` — Express server on port **8080** (the only monitored workflow port)
-  - Serves REST API at `/api/*`
-  - Serves the built React app as static files at `/*` (SPA fallback → `index.html`)
-  - Static files come from `artifacts/promptloop/dist/public/` (built by `pnpm --filter @workspace/promptloop run build`)
-- `artifacts/promptloop` — React+Vite frontend; **not run as a dev server workflow** because Replit's workflow monitor only detects ports 8080 and 8081 (registered in `.replit`). Instead, the frontend is built and served by the API server.
+The Replit workflow monitor only detects ports registered in `.replit` (8080 and 8081). Port 8081 is used by the canvas/mockup sandbox. So both the frontend and backend must share port 8080.
 
-> **Development workflow**: After editing frontend files, run `pnpm --filter @workspace/promptloop run build` then restart the api-server workflow. Or use `pnpm --filter @workspace/promptloop run build:watch` in a separate session for auto-rebuild on changes.
+### Development (single workflow owns port 8080)
+
+- `artifacts/promptloop: web` workflow — runs `bash dev.sh`, which:
+  1. Builds the API server (`pnpm --filter @workspace/api-server run build`)
+  2. Starts the API server on **port 8082** in the background
+  3. Starts the Vite dev server on **port 8080** in the foreground (workflow monitor detects this)
+  4. Vite proxies all `/api/*` requests to port 8082
+- `artifacts/api-server: API Server` workflow — shows as FAILED (its dev command is a no-op `sleep infinity`); the actual Express server is started by the promptloop's `dev.sh`
+
+### Production
+
+- API server builds and runs on port 8080, serving both `/api/*` (REST) and `/*` (static React files from `artifacts/promptloop/dist/public/`)
+
+> **Development tip**: After editing frontend files, save — Vite HMR picks it up automatically. After editing backend files, restart the `artifacts/promptloop: web` workflow (it rebuilds the API server on start).
 
 ## Key Routes
 

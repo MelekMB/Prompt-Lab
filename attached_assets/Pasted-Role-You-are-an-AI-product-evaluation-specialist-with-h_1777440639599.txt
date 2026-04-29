@@ -1,0 +1,85 @@
+Role:
+You are an AI product evaluation specialist with hands-on experience in prompt engineering, LLM QA, evaluation design, and operating AI features in production. Write for a Senior Software Engineer or technical product owner who needs to implement a practical, repeatable prompt evaluation process for a real application.
+
+Context:
+- The goal is to design a general evaluation framework for prompts used in production, not to evaluate a single prompt.
+- Use a RAG-based customer support assistant as the running example wherever it helps make the guidance concrete.
+- Assume a typical modern stack: Python services, API-based LLM calls, logging/analytics, experiment tracking, and CI/CD. Keep recommendations broadly applicable and avoid dependence on niche tooling.
+- The team wants a first version that can be implemented incrementally.
+- The evaluation process must support both pre-release testing and post-release monitoring.
+- The framework should be useful to engineering and product stakeholders, not just ML specialists.
+- A previous response was criticized only as: "Prompt reviewed." Do not infer any additional critique details beyond that. Improve by being clearer, more actionable, more structured, and more implementation-ready.
+
+Task:
+Explain how to design, operate, and improve an end-to-end prompt evaluation framework for an application that uses prompts in production.
+
+Inputs:
+You should assume the following input conditions:
+- The application uses prompts in a production environment.
+- The user wants a repeatable system for evaluation, not a one-off review.
+- The primary example application is a RAG-based customer support assistant.
+- The reader has enough technical background to implement workflows, metrics, and automation, but does not want unnecessary theory.
+
+Requirements:
+Your response must cover all of the following:
+1. Core evaluation criteria, including accuracy, relevance, clarity, consistency, safety, latency, cost, and user satisfaction.
+2. Qualitative vs. quantitative evaluation: what each means, key tradeoffs, when to use each, and how they complement each other.
+3. A step-by-step workflow for prompt evaluation, including:
+   - defining goals and success metrics
+   - creating or curating a ground-truth evaluation dataset
+   - selecting representative test cases and edge cases
+   - creating scoring rubrics
+   - running evaluations
+   - reviewing failures
+   - iterating on prompts
+   - monitoring performance over time
+4. Concrete examples of metrics, scoring rubrics, and test cases.
+5. Manual evaluation and automated evaluation: how to run both in practice, who should do them, and how to combine them effectively.
+6. Automated evaluation methods must explicitly include:
+   - rule-based checks
+   - model-based checks
+   - LLM-as-a-judge patterns
+   For each, explain where it fits in a production evaluation pipeline.
+7. For LLM-as-a-judge specifically, include:
+   - when it is useful
+   - its risks and limitations
+   - how to calibrate it against human review
+   - at least 2 example judge rubrics or judge prompts
+   - failure modes such as evaluator bias, rubric drift, weak agreement with human reviewers, and overfitting to the evaluator
+8. A comparison of these 3 evaluation tools/platforms: Promptfoo, LangSmith, and Giskard.
+9. Best practices for prompt iteration, versioning, regression testing, release gates, and continuous improvement.
+10. A practical view of cost-benefit tradeoffs between human review and automated evaluation, including where human-in-the-loop is worth the extra cost.
+
+Additional constraints:
+- Keep the guidance practical, actionable, and implementation-oriented.
+- Use clear, simple language while maintaining enough technical depth to be useful.
+- Focus on building a repeatable system rather than one-off prompt reviews.
+- Do not assume a specialized stack beyond common engineering tools.
+- Avoid unnecessary theory, filler, and long digressions.
+- Do not invent organizational details, tooling already in use, or critique details not provided.
+- If useful, include a sample scorecard, rubric, checklist, or lightweight process template.
+- Keep the response concise but complete.
+- Target approximately 1,400-2,000 words.
+
+Output Format:
+Produce the response in exactly this structure:
+1. Short overview (3-5 sentences)
+2. Structured framework with clear headings
+3. Step-by-step workflow as a numbered list
+4. Worked example using the RAG-based customer support assistant
+5. Small comparison table with columns: Tool, Category, Best For, Strengths, Limitations, Where It Fits
+6. At least 2 example LLM-as-a-judge rubrics or judge prompts
+7. Practical evaluation template or checklist at the end
+
+Quality Bar / Success Criteria:
+A strong response will:
+- Be actionable enough that a Senior Software Engineer could implement a first version.
+- Balance process, metrics, automation, governance, and iteration.
+- Use the RAG example to make abstract guidance concrete.
+- Clearly explain how human review and automated checks work together.
+- Explicitly include LLM-as-a-judge as part of a professional evaluation framework.
+- Treat ground-truth dataset creation as a core part of the workflow.
+- Make the Promptfoo, LangSmith, and Giskard comparison coherent and practically useful.
+- Address cost, latency, and operational tradeoffs, not just quality metrics.
+- Prioritize repeatability, measurable scoring, and production usefulness.
+- Be substantially more useful than a vague or generic response.

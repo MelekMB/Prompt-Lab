@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Save, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter, Trophy, User } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter, Trophy, User } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -757,11 +757,6 @@ export function Home() {
                           Leaderboard
                         </Button>
                       )}
-                      <Button size="sm" className="h-8 text-xs gap-1.5" onClick={handleSaveSession}
-                        disabled={createSessionMutation.isPending}>
-                        {createSessionMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                        Save
-                      </Button>
                     </div>
                   </CardFooter>
                 </Card>

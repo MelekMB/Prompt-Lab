@@ -48,57 +48,115 @@ Subject: [compelling subject line]
 ---
 [email body]`;
 
+type DemoPhase = "typing-before" | "pause-before" | "transition" | "typing-after" | "pause-after";
+
 function AnimatedBeforeAfter() {
-  const [phase, setPhase] = useState<"before" | "transition" | "after">("before");
-  const [displayText, setDisplayText] = useState(DEMO_BEFORE);
+  const [phase, setPhase] = useState<DemoPhase>("typing-before");
+  const [displayed, setDisplayed] = useState("");
+
   useEffect(() => {
-    const run = () => {
-      setPhase("before");
-      setDisplayText(DEMO_BEFORE);
-      const t1 = setTimeout(() => setPhase("transition"), 2500);
-      const t2 = setTimeout(() => { setPhase("after"); setDisplayText(DEMO_AFTER); }, 3200);
-      return [t1, t2];
+    let cancelled = false;
+    let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const sleep = (ms: number) =>
+      new Promise<void>(resolve => { pendingTimer = setTimeout(resolve, ms); });
+
+    async function typeText(text: string, speed: number) {
+      for (let i = 1; i <= text.length; i++) {
+        if (cancelled) return;
+        setDisplayed(text.slice(0, i));
+        await sleep(speed);
+      }
+    }
+
+    async function run() {
+      while (!cancelled) {
+        // 1. Type the before prompt
+        setPhase("typing-before");
+        setDisplayed("");
+        await typeText(DEMO_BEFORE, 55);
+        if (cancelled) return;
+
+        // 2. Pause so user can read it
+        setPhase("pause-before");
+        await sleep(1800);
+        if (cancelled) return;
+
+        // 3. Transition (spinner)
+        setPhase("transition");
+        setDisplayed("");
+        await sleep(1600);
+        if (cancelled) return;
+
+        // 4. Stream out the optimized result
+        setPhase("typing-after");
+        await typeText(DEMO_AFTER, 10);
+        if (cancelled) return;
+
+        // 5. Hold the final result
+        setPhase("pause-after");
+        await sleep(3500);
+        if (cancelled) return;
+      }
+    }
+
+    run();
+
+    return () => {
+      cancelled = true;
+      if (pendingTimer) clearTimeout(pendingTimer);
     };
-    const timers = run();
-    const interval = setInterval(() => { timers.forEach(clearTimeout); timers.splice(0); run().forEach(t => timers.push(t)); }, 10000);
-    return () => { timers.forEach(clearTimeout); clearInterval(interval); };
   }, []);
+
+  const isTyping = phase === "typing-before" || phase === "typing-after";
+  const isAfter = phase === "typing-after" || phase === "pause-after";
+  const isDone = phase === "pause-after";
 
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0f] overflow-hidden">
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.05]">
         <div className="flex items-center gap-2">
-          <div className={cn("w-2 h-2 rounded-full transition-colors duration-500", phase === "after" ? "bg-green-400" : "bg-yellow-400/70")} />
+          <div className={cn(
+            "w-2 h-2 rounded-full transition-colors duration-700",
+            isAfter ? "bg-green-400" : phase === "transition" ? "bg-primary animate-pulse" : "bg-yellow-400/70"
+          )} />
           <span className="text-xs font-mono text-muted-foreground">
-            {phase === "before" ? "raw_prompt.txt" : phase === "transition" ? "optimizing..." : "optimized_prompt.md"}
+            {isAfter ? "optimized_prompt.md" : phase === "transition" ? "optimizing..." : "raw_prompt.txt"}
           </span>
         </div>
-        {phase === "after" && (
-          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in">2/10 → 9/10</span>
+        {isDone && (
+          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in duration-500">
+            2/10 → 9/10
+          </span>
         )}
       </div>
 
-      <div className={cn("relative p-4 min-h-[170px] transition-opacity duration-300", phase === "transition" ? "opacity-0" : "opacity-100")}>
-        <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">{displayText}</pre>
-        {phase === "before" && <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: 2/10</span>}
-        {phase === "after" && (
-          <div className="absolute bottom-3 right-3 animate-in fade-in">
-            <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              <span className="text-[10px] text-green-400 font-mono font-bold">9/10</span>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {phase === "transition" && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div className={cn("relative p-4 min-h-[170px]", phase === "transition" && "flex items-center justify-center")}>
+        {phase === "transition" ? (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-xs text-primary font-mono">AI optimizing...</span>
           </div>
-        </div>
-      )}
+        ) : (
+          <>
+            <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
+              {displayed}
+              {isTyping && <span className="animate-pulse text-primary">▋</span>}
+            </pre>
+            {phase === "pause-before" && (
+              <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: 2/10</span>
+            )}
+            {isDone && (
+              <div className="absolute bottom-3 right-3 animate-in fade-in duration-500">
+                <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                  <span className="text-[10px] text-green-400 font-mono font-bold">9/10</span>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }

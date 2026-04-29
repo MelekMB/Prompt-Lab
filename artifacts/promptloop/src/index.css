@@ -73,10 +73,10 @@
   --elevate-1: rgba(255,255,255, .04);
   --elevate-2: rgba(255,255,255, .09);
 
-  /* Deep dark cockpit vibe */
-  --background: 240 10% 4%;
-  --foreground: 0 0% 98%;
-  --border: 240 10% 12%;
+  /* Deep black — OpenClaw inspired */
+  --background: 220 8% 3%;
+  --foreground: 0 0% 96%;
+  --border: 220 8% 11%;
   
   --card: 240 10% 6%;
   --card-foreground: 0 0% 98%;
@@ -86,41 +86,41 @@
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 15%;
 
-  /* Teal/cyan lab palette */
-  --primary: 173 80% 42%;
+  /* Coral-red bold palette */
+  --primary: 5 72% 58%;
   --primary-foreground: 0 0% 100%;
   
-  --secondary: 240 10% 15%;
-  --secondary-foreground: 0 0% 98%;
+  --secondary: 220 8% 13%;
+  --secondary-foreground: 0 0% 96%;
 
-  --muted: 240 10% 12%;
-  --muted-foreground: 240 5% 65%;
+  --muted: 220 8% 10%;
+  --muted-foreground: 220 5% 60%;
 
-  --accent: 173 80% 42%;
+  --accent: 5 72% 58%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
 
-  --input: 240 10% 15%;
-  --ring: 173 80% 42%;
+  --input: 220 8% 13%;
+  --ring: 5 72% 58%;
   
-  --sidebar: 240 10% 6%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 240 10% 12%;
-  --sidebar-primary: 173 80% 42%;
+  --sidebar: 220 8% 4%;
+  --sidebar-foreground: 0 0% 96%;
+  --sidebar-border: 220 8% 11%;
+  --sidebar-primary: 5 72% 58%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 240 10% 15%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 173 80% 42%;
+  --sidebar-accent: 220 8% 13%;
+  --sidebar-accent-foreground: 0 0% 96%;
+  --sidebar-ring: 5 72% 58%;
 
-  --chart-1: 173 80% 42%;
+  --chart-1: 5 72% 58%;
   --chart-2: 240 10% 40%;
   --chart-3: 240 10% 30%;
   --chart-4: 240 10% 20%;
   --chart-5: 240 10% 10%;
 
-  --app-font-sans: 'Inter', system-ui, sans-serif;
+  --app-font-sans: 'Space Grotesk', system-ui, sans-serif;
   --app-font-serif: Georgia, serif;
   --app-font-mono: 'JetBrains Mono', 'Menlo', monospace;
   --radius: 0.5rem;

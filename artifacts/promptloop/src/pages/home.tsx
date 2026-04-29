@@ -88,42 +88,49 @@ function BlueRobotSvg({ active, flipped }: { active: boolean; flipped: boolean }
 }
 
 function BattleRobot({ isRed, isOnLeft, active }: { isRed: boolean; isOnLeft: boolean; active: boolean }) {
-  const color    = isRed ? "#e05252" : "#60a5fa";
-  const label    = isRed ? "Rewriter" : "Scorer";
-  const lungeX   = isOnLeft ? 20 : -20;
-  const retreatX = isOnLeft ? -4 : 4;
+  const label = isRed ? "Rewriter" : "Scorer";
+  const accentColor = isRed ? "#e05252" : "#60a5fa";
+  const lungeX   = isOnLeft ? 24 : -24;
+  const retreatX = isOnLeft ? -8 : 8;
   const labelClass = isRed
-    ? (active ? "text-rose-400" : "text-rose-900")
-    : (active ? "text-blue-400"  : "text-blue-900/50");
+    ? (active ? "text-rose-400" : "text-rose-900/60")
+    : (active ? "text-blue-400" : "text-blue-900/40");
 
   return (
-    <div className="flex flex-col items-center gap-1.5 flex-1">
-      <motion.div
-        animate={active
-          ? { x: lungeX, scale: 1.2, rotate: isOnLeft ? -10 : 10,
-              filter: `drop-shadow(0 0 22px ${color}) drop-shadow(0 0 10px ${color})` }
-          : { x: retreatX, scale: 0.86, rotate: 0,
-              filter: "drop-shadow(0 0 0px transparent)" }}
-        transition={{ type: "spring", stiffness: 260, damping: 16 }}
-      >
+    <div className="flex flex-col items-center gap-2 flex-1">
+      {/* Glow ring behind robot — visible only when active */}
+      <div className="relative flex items-center justify-center">
         <motion.div
-          animate={active ? { y: 0 } : { y: [0, -6, 0] }}
-          transition={{ repeat: active ? 0 : Infinity, duration: 1.6, ease: "easeInOut" }}
+          className="absolute rounded-full"
+          style={{ width: 90, height: 90, background: accentColor }}
+          animate={{ opacity: active ? [0.15, 0.35, 0.15] : 0, scale: active ? [0.9, 1.1, 0.9] : 0.8 }}
+          transition={{ repeat: Infinity, duration: 0.7 }}
+        />
+        <motion.div
+          animate={active
+            ? { x: lungeX, scale: 1.25, rotate: isOnLeft ? -12 : 12, opacity: 1 }
+            : { x: retreatX, scale: 0.75, rotate: 0, opacity: 0.35 }}
+          transition={{ type: "spring", stiffness: 240, damping: 15 }}
         >
-          {isRed
-            ? <RedRobotSvg  active={active} flipped={!isOnLeft} />
-            : <BlueRobotSvg active={active} flipped={isOnLeft}  />}
+          <motion.div
+            animate={active ? { y: [0, -4, 0] } : { y: [0, -3, 0] }}
+            transition={{ repeat: Infinity, duration: active ? 0.5 : 2, ease: "easeInOut" }}
+          >
+            {isRed
+              ? <RedRobotSvg  active={active} flipped={!isOnLeft} />
+              : <BlueRobotSvg active={active} flipped={isOnLeft}  />}
+          </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
       <div className="flex items-center gap-1">
         {!isOnLeft && active && (
-          <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`}
-            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.55 }}>●</motion.span>
+          <motion.span className="text-[9px]" style={{ color: accentColor }}
+            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.5 }}>●</motion.span>
         )}
         <span className={cn("text-[10px] font-bold tracking-widest uppercase", labelClass)}>{label}</span>
         {isOnLeft && active && (
-          <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`}
-            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.55 }}>●</motion.span>
+          <motion.span className="text-[9px]" style={{ color: accentColor }}
+            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.5 }}>●</motion.span>
         )}
       </div>
     </div>

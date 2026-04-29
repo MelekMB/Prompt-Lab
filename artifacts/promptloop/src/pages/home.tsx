@@ -153,7 +153,7 @@ function ScoreRing({ score }: { score: number }) {
 
 function fireConfetti() {
   const end = Date.now() + 1200;
-  const colors = ["#7c3aed", "#3b82f6", "#a78bfa", "#60a5fa", "#ffffff"];
+  const colors = ["#0d9488", "#22d3ee", "#5eead4", "#67e8f9", "#ffffff"];
   (function frame() {
     confetti({ particleCount: 3, angle: 60, spread: 55, origin: { x: 0 }, colors });
     confetti({ particleCount: 3, angle: 120, spread: 55, origin: { x: 1 }, colors });
@@ -305,7 +305,7 @@ export function Home() {
         </div>
         <h1 className="text-4xl md:text-5xl font-black tracking-tight">
           Your prompts,{" "}
-          <span className="bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">
             actually good.
           </span>
         </h1>
@@ -364,7 +364,7 @@ export function Home() {
                           className={cn(
                             "w-7 h-7 rounded-lg text-xs font-bold transition-all border",
                             watchRounds === n
-                              ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(124,58,237,0.4)]"
+                              ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(13,148,136,0.4)]"
                               : "bg-secondary/50 text-muted-foreground border-border/30 hover:bg-secondary"
                           )}
                         >
@@ -374,7 +374,7 @@ export function Home() {
                     </div>
                   </div>
                   <Button type="submit" disabled={isRunning}
-                    className="bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-500 hover:to-blue-500 text-white font-bold text-sm px-5 h-9 rounded-xl shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)] transition-all border-0"
+                    className="bg-gradient-to-r from-teal-600 to-cyan-500 hover:from-teal-500 hover:to-cyan-400 text-white font-bold text-sm px-5 h-9 rounded-xl shadow-[0_0_20px_rgba(20,184,166,0.3)] hover:shadow-[0_0_25px_rgba(20,184,166,0.5)] transition-all border-0"
                   >
                     {isRunning ? <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Running...</> : <><Sparkles className="w-3.5 h-3.5 mr-2" />Make it better<ArrowRight className="w-3 h-3 ml-1.5" /></>}
                   </Button>
@@ -430,9 +430,9 @@ export function Home() {
 
           {/* Loading */}
           {isRunning && (
-            <Card className="border-primary/30 shadow-[0_0_40px_rgba(124,58,237,0.12)] relative overflow-hidden bg-card/60">
+            <Card className="border-primary/30 shadow-[0_0_40px_rgba(13,148,136,0.12)] relative overflow-hidden bg-card/60">
               <div className="absolute top-0 left-0 w-full h-0.5 bg-border/30">
-                <motion.div className="h-full bg-gradient-to-r from-violet-500 to-blue-500"
+                <motion.div className="h-full bg-gradient-to-r from-teal-500 to-cyan-400"
                   animate={{ width: `${progressPct}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
               </div>
               <CardContent className="pt-8 pb-6 flex flex-col items-center space-y-5 text-center">
@@ -495,8 +495,8 @@ export function Home() {
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
                 {/* Final prompt card */}
-                <Card className="border-primary/40 shadow-[0_0_50px_rgba(124,58,237,0.15)] overflow-hidden bg-card">
-                  <div className="bg-gradient-to-r from-violet-500/10 to-blue-500/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between">
+                <Card className="border-primary/40 shadow-[0_0_50px_rgba(13,148,136,0.15)] overflow-hidden bg-card">
+                  <div className="bg-gradient-to-r from-teal-500/10 to-cyan-500/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <span className="font-mono font-bold text-primary text-sm">OPTIMIZED PROMPT</span>
@@ -599,7 +599,7 @@ export function Home() {
                   { label: "Rounds avg", value: "3.2" },
                 ].map(stat => (
                   <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-3">
-                    <p className="text-lg font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{stat.value}</p>
+                    <p className="text-lg font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">{stat.value}</p>
                     <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
                   </div>
                 ))}

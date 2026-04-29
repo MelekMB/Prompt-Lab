@@ -86,8 +86,8 @@
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 15%;
 
-  /* Electric violet/indigo */
-  --primary: 262 83% 58%;
+  /* Teal/cyan lab palette */
+  --primary: 173 80% 42%;
   --primary-foreground: 0 0% 100%;
   
   --secondary: 240 10% 15%;
@@ -96,25 +96,25 @@
   --muted: 240 10% 12%;
   --muted-foreground: 240 5% 65%;
 
-  --accent: 262 83% 58%;
+  --accent: 173 80% 42%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
 
   --input: 240 10% 15%;
-  --ring: 262 83% 58%;
+  --ring: 173 80% 42%;
   
   --sidebar: 240 10% 6%;
   --sidebar-foreground: 0 0% 98%;
   --sidebar-border: 240 10% 12%;
-  --sidebar-primary: 262 83% 58%;
+  --sidebar-primary: 173 80% 42%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 240 10% 15%;
   --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 262 83% 58%;
+  --sidebar-ring: 173 80% 42%;
 
-  --chart-1: 262 83% 58%;
+  --chart-1: 173 80% 42%;
   --chart-2: 240 10% 40%;
   --chart-3: 240 10% 30%;
   --chart-4: 240 10% 20%;

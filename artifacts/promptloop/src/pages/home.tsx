@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Save, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter } from "lucide-react";
+import { Sparkles, Copy, Check, Save, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter, Trophy, User } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -20,6 +20,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { AVATAR_COLORS, LEADERBOARD_SUBJECTS, type LeaderboardSubject } from "@workspace/api-zod";
+
+const IDENTITY_KEY = "prompt_labs_identity";
+interface Identity { handle: string; avatarColor: string; }
+function getIdentity(): Identity | null {
+  try { const r = localStorage.getItem(IDENTITY_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
+}
+function saveIdentity(id: Identity) { localStorage.setItem(IDENTITY_KEY, JSON.stringify(id)); }
 
 const EXAMPLE_PROMPTS = [
   "Write a cold email to a VC",
@@ -316,6 +325,20 @@ export function Home() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [phase, setPhase] = useState<Phase>({ status: "idle" });
 
+  // Leaderboard state
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [lbStatus, setLbStatus] = useState<"idle" | "submitting" | "done">("idle");
+  const [savedSessionId, setSavedSessionId] = useState<number | null>(null);
+  const [selectedSubject, setSelectedSubject] = useState<LeaderboardSubject>("Marketing");
+  const [identity, setIdentityState] = useState<Identity | null>(null);
+  const [newHandle, setNewHandle] = useState("");
+  const [selectedColor, setSelectedColor] = useState<string>(AVATAR_COLORS[0]);
+
+  useEffect(() => {
+    const stored = getIdentity();
+    if (stored) { setIdentityState(stored); setNewHandle(stored.handle); setSelectedColor(stored.avatarColor); }
+  }, []);
+
   const createSessionMutation = useCreateSession();
 
   const form = useForm<FormValues>({
@@ -408,17 +431,53 @@ export function Home() {
     }
   };
 
+  const saveSession = (): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      if (phase.status !== "complete") { reject(new Error("No result")); return; }
+      if (savedSessionId) { resolve(savedSessionId); return; }
+      const { result } = phase;
+      const formData = form.getValues();
+      createSessionMutation.mutate(
+        { data: { originalPrompt: result.originalPrompt, goal: formData.goal, audience: formData.audience, tone: formData.tone, constraints: formData.constraints, finalPrompt: result.finalPrompt, finalScore: result.finalScore, rounds: result.rounds } },
+        {
+          onSuccess: (session) => { setSavedSessionId(session.id); resolve(session.id); },
+          onError: (e) => reject(e),
+        }
+      );
+    });
+  };
+
   const handleSaveSession = () => {
-    if (phase.status !== "complete") return;
-    const { result } = phase;
-    const formData = form.getValues();
-    createSessionMutation.mutate(
-      { data: { originalPrompt: result.originalPrompt, goal: formData.goal, audience: formData.audience, tone: formData.tone, constraints: formData.constraints, finalPrompt: result.finalPrompt, finalScore: result.finalScore, rounds: result.rounds } },
-      {
-        onSuccess: (session) => { toast({ title: "Saved!", description: "View it in History." }); setLocation(`/session/${session.id}`); },
-        onError: () => toast({ title: "Save failed", variant: "destructive" }),
+    saveSession()
+      .then((id) => { toast({ title: "Saved!", description: "View it in History." }); setLocation(`/session/${id}`); })
+      .catch(() => toast({ title: "Save failed", variant: "destructive" }));
+  };
+
+  const handleSubmitLeaderboard = async () => {
+    const handle = newHandle.trim();
+    if (!handle || handle.length < 2) { toast({ title: "Enter a handle (min 2 chars)", variant: "destructive" }); return; }
+    setLbStatus("submitting");
+    try {
+      const sessionId = await saveSession();
+      const newIdentity: Identity = { handle, avatarColor: selectedColor };
+      saveIdentity(newIdentity);
+      setIdentityState(newIdentity);
+      const res = await fetch("/api/leaderboard", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, handle, avatarColor: selectedColor, subject: selectedSubject }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error((err as any).error ?? "Failed to submit");
       }
-    );
+      setLbStatus("done");
+      fireConfetti();
+      toast({ title: "🏆 You're on the leaderboard!", description: `Rank submitted as ${handle}` });
+    } catch {
+      setLbStatus("idle");
+      toast({ title: "Submission failed", variant: "destructive" });
+    }
   };
 
   const isRunning = phase.status !== "idle" && phase.status !== "complete" && phase.status !== "error";
@@ -671,7 +730,7 @@ export function Home() {
                   </CardContent>
                   <CardFooter className="p-3 bg-secondary/20 border-t border-border/30 flex flex-wrap gap-2 justify-between items-center">
                     <span className="text-xs text-muted-foreground font-mono">{phase.result.rounds.length} rounds completed</span>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 flex-wrap">
                       <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5"
                         onClick={() => copyToClipboard(phase.result.finalPrompt, "final")}>
                         {copied === "final" ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
@@ -682,6 +741,18 @@ export function Home() {
                         <Twitter className="w-3 h-3" />
                         Share on X
                       </Button>
+                      {lbStatus === "done" ? (
+                        <Button size="sm" disabled className="h-8 text-xs gap-1.5 bg-amber-500/20 text-amber-400 border-amber-500/30 border">
+                          <Trophy className="w-3 h-3" />
+                          On Leaderboard!
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                          onClick={() => { setLbStatus("idle"); setShowLeaderboard(true); }}>
+                          <Trophy className="w-3 h-3" />
+                          Leaderboard
+                        </Button>
+                      )}
                       <Button size="sm" className="h-8 text-xs gap-1.5" onClick={handleSaveSession}
                         disabled={createSessionMutation.isPending}>
                         {createSessionMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
@@ -756,6 +827,87 @@ export function Home() {
           )}
         </div>
       </div>
+
+      {/* Leaderboard submit modal */}
+      <Dialog open={showLeaderboard} onOpenChange={(o) => { if (!o) setShowLeaderboard(false); }}>
+        <DialogContent className="max-w-md bg-[#0e0e14] border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 font-mono">
+              <Trophy className="w-5 h-5 text-amber-400" />
+              Submit to Leaderboard
+            </DialogTitle>
+          </DialogHeader>
+
+          {lbStatus === "done" ? (
+            <div className="py-8 text-center space-y-3">
+              <div className="text-5xl">🏆</div>
+              <h3 className="font-bold text-lg">You're on the board!</h3>
+              <p className="text-sm text-muted-foreground">Your prompt is competing globally as <strong className="text-foreground font-mono">{identity?.handle}</strong>.</p>
+              <Button className="mt-4 w-full" variant="outline" onClick={() => { setShowLeaderboard(false); setLocation("/leaderboard"); }}>
+                View Leaderboard
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <div className="space-y-3">
+                <label className="text-xs font-mono text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5" />Your handle
+                </label>
+                <Input
+                  placeholder="e.g. promptwizard42"
+                  value={newHandle}
+                  onChange={e => setNewHandle(e.target.value)}
+                  maxLength={30}
+                  className="font-mono bg-black/30 border-white/10 focus:border-primary/50"
+                />
+                <div className="space-y-1.5">
+                  <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Avatar colour</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {AVATAR_COLORS.map(c => (
+                      <button key={c} type="button" onClick={() => setSelectedColor(c)}
+                        className={cn("w-8 h-8 rounded-full border-2 transition-transform hover:scale-110", selectedColor === c ? "border-white scale-110" : "border-transparent")}
+                        style={{ backgroundColor: c }} />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Category</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {LEADERBOARD_SUBJECTS.map(s => (
+                    <button key={s} type="button" onClick={() => setSelectedSubject(s)}
+                      className={cn("text-xs px-3 py-1 rounded-full border font-mono transition-all",
+                        selectedSubject === s ? "bg-primary/20 border-primary/40 text-primary" : "bg-secondary/30 border-border/30 text-muted-foreground hover:text-foreground"
+                      )}>
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {newHandle.trim().length >= 2 && (
+                <div className="rounded-xl border border-white/10 p-3 flex items-center gap-3 bg-white/[0.03]">
+                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-black font-mono text-sm border-2 flex-shrink-0"
+                    style={{ backgroundColor: `${selectedColor}22`, borderColor: `${selectedColor}55`, color: selectedColor }}>
+                    {newHandle.trim().charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm font-mono">{newHandle.trim()}</p>
+                    <p className="text-[10px] text-muted-foreground">{selectedSubject} · {phase.status === "complete" ? `${phase.result.finalScore}/10` : ""}</p>
+                  </div>
+                </div>
+              )}
+
+              <Button onClick={handleSubmitLeaderboard}
+                disabled={lbStatus === "submitting" || newHandle.trim().length < 2}
+                className="w-full bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold border-0">
+                {lbStatus === "submitting" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Trophy className="w-4 h-4 mr-2" />Claim your rank</>}
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

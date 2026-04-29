@@ -87,6 +87,14 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </Link>
 
         <nav className="flex items-center gap-2">
+          <Link href="/leaderboard" className={cn(
+            "px-4 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5",
+            location.startsWith("/leaderboard")
+              ? "text-amber-400"
+              : "text-muted-foreground hover:text-foreground"
+          )}>
+            🏆 Leaderboard
+          </Link>
           <Link href="/history" className={cn(
             "px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
             location.startsWith("/history") || location.startsWith("/session")

@@ -1,11 +1,12 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, avg, max } from "drizzle-orm";
-import { db, sessionsTable, sessionRoundsTable } from "@workspace/db";
+import { eq, sql, avg, max, desc } from "drizzle-orm";
+import { db, sessionsTable, sessionRoundsTable, leaderboardEntriesTable } from "@workspace/db";
 import {
   ImprovePromptBody,
   CreateSessionBody,
   GetSessionParams,
   DeleteSessionParams,
+  SubmitLeaderboardBody,
 } from "@workspace/api-zod";
 import { runImprovementLoop } from "../../lib/prompt-improvement";
 
@@ -185,6 +186,73 @@ router.delete("/sessions/:id", async (req, res): Promise<void> => {
   } catch (err) {
     req.log.error({ err }, "Failed to delete session");
     res.status(500).json({ error: "Failed to delete session" });
+  }
+});
+
+router.get("/leaderboard", async (req, res): Promise<void> => {
+  try {
+    const entries = await db
+      .select()
+      .from(leaderboardEntriesTable)
+      .orderBy(desc(leaderboardEntriesTable.score))
+      .limit(100);
+
+    res.json(
+      entries.map((e) => ({
+        id: e.id,
+        sessionId: e.sessionId,
+        handle: e.handle,
+        avatarColor: e.avatarColor,
+        subject: e.subject,
+        score: e.score,
+        originalPromptPreview: e.originalPromptPreview,
+        finalPromptPreview: e.finalPromptPreview,
+        createdAt: e.createdAt,
+      }))
+    );
+  } catch (err) {
+    req.log.error({ err }, "Failed to fetch leaderboard");
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
+  }
+});
+
+router.post("/leaderboard", async (req, res): Promise<void> => {
+  const parsed = SubmitLeaderboardBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  try {
+    const { sessionId, handle, avatarColor, subject } = parsed.data;
+
+    const [session] = await db
+      .select()
+      .from(sessionsTable)
+      .where(eq(sessionsTable.id, sessionId));
+
+    if (!session) {
+      res.status(404).json({ error: "Session not found" });
+      return;
+    }
+
+    const [entry] = await db
+      .insert(leaderboardEntriesTable)
+      .values({
+        sessionId,
+        handle,
+        avatarColor,
+        subject,
+        score: session.finalScore,
+        originalPromptPreview: session.originalPrompt.slice(0, 120),
+        finalPromptPreview: session.finalPrompt.slice(0, 300),
+      })
+      .returning();
+
+    res.status(201).json(entry);
+  } catch (err) {
+    req.log.error({ err }, "Failed to submit leaderboard entry");
+    res.status(500).json({ error: "Failed to submit entry" });
   }
 });
 

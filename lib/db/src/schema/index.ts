@@ -19,3 +19,4 @@
 
 export * from "./sessions";
 export * from "./session_rounds";
+export * from "./leaderboard";

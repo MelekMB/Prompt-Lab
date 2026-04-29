@@ -724,142 +724,173 @@ export function Home() {
           {/* Loading — fighting robots */}
           {isRunning && (
             <Card className="border-primary/30 shadow-[0_0_40px_rgba(192,57,43,0.12)] relative overflow-hidden bg-card/60">
-              <style>{`
-                @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
-                @keyframes lunge-right { 0%,100%{transform:translateX(0) rotate(0deg)} 40%{transform:translateX(10px) rotate(-4deg)} }
-                @keyframes lunge-left  { 0%,100%{transform:translateX(0) rotate(0deg)} 40%{transform:translateX(-10px) rotate(4deg)} }
-                @keyframes spark { 0%,100%{opacity:0;transform:scale(0.5)} 50%{opacity:1;transform:scale(1.2)} }
-                @keyframes clash { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.3)} }
-                .bob { animation: bob 1.4s ease-in-out infinite; }
-                .lunge-r { animation: lunge-right 0.7s ease-in-out infinite; }
-                .lunge-l { animation: lunge-left  0.7s ease-in-out infinite; }
-                .spark1 { animation: spark 0.4s ease-in-out infinite; }
-                .spark2 { animation: spark 0.4s ease-in-out infinite 0.13s; }
-                .spark3 { animation: spark 0.4s ease-in-out infinite 0.26s; }
-                .clash-fx { animation: clash 0.5s ease-in-out infinite; }
-              `}</style>
-
               {/* Progress bar */}
               <div className="absolute top-0 left-0 w-full h-0.5 bg-border/30">
                 <motion.div className="h-full bg-gradient-to-r from-rose-500 to-red-400"
                   animate={{ width: `${progressPct}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
               </div>
 
-              <CardContent className="pt-6 pb-5">
-                {/* Arena */}
-                <div className="flex items-center justify-between gap-2 mb-4">
+              <CardContent className="pt-5 pb-5">
+                {(() => {
+                  const rewriterActive = phase.status === "round_start";
+                  const scorerActive   = phase.status === "chatgpt_done";
+                  const clashing       = rewriterActive || scorerActive;
+                  // Swap sides each round: odd → rewriter left, even → scorer left
+                  const roundNum       = getCurrentRound() || 1;
+                  const rewriterOnLeft = roundNum % 2 !== 0;
 
-                  {/* Rewriter robot (red) — active during round_start */}
-                  {(() => {
-                    const rewriterActive = phase.status === "round_start";
+                  const RedRobot = ({ active, facingRight }: { active: boolean; facingRight: boolean }) => (
+                    <svg width="64" height="88" viewBox="0 0 52 72" fill="none"
+                      style={{ transform: facingRight ? "none" : "scaleX(-1)" }}>
+                      <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
+                      <motion.circle cx="26" cy="4" r="3"
+                        animate={{ fill: active ? "#e05252" : "#3a1a1a", scale: active ? [1,1.6,1] : 1 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.5 }} />
+                      <rect x="8" y="9" width="36" height="26" rx="5" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
+                      <motion.rect x="13" y="17" width="10" height="8" rx="2"
+                        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1,0.5,1] : 0.6 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.4 }} />
+                      <motion.rect x="29" y="17" width="10" height="8" rx="2"
+                        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1,0.5,1] : 0.6 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.4, delay: 0.05 }} />
+                      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={active ? 0.9 : 0.2}/>
+                      <rect x="6" y="38" width="40" height="26" rx="5" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
+                      <motion.circle cx="26" cy="51" r="6"
+                        animate={{ fill: active ? "#e05252" : "#2a1010", scale: active ? [1,1.3,1] : 1 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.6 }} />
+                      <rect x="0" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+                      <rect x="46" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+                      <rect x="10" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+                      <rect x="29" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+                    </svg>
+                  );
+
+                  const BlueRobot = ({ active, facingLeft }: { active: boolean; facingLeft: boolean }) => (
+                    <svg width="64" height="88" viewBox="0 0 52 72" fill="none"
+                      style={{ transform: facingLeft ? "none" : "scaleX(-1)" }}>
+                      <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
+                      <motion.circle cx="26" cy="4" r="3"
+                        animate={{ fill: active ? "#60a5fa" : "#0a1828", scale: active ? [1,1.6,1] : 1 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.5 }} />
+                      <rect x="8" y="9" width="36" height="26" rx="5" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
+                      <motion.rect x="13" y="17" width="10" height="8" rx="2"
+                        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1,0.5,1] : 0.6 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.4 }} />
+                      <motion.rect x="29" y="17" width="10" height="8" rx="2"
+                        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1,0.5,1] : 0.6 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.4, delay: 0.05 }} />
+                      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={active ? 0.9 : 0.2}/>
+                      <rect x="6" y="38" width="40" height="26" rx="5" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
+                      <motion.circle cx="26" cy="51" r="6"
+                        animate={{ fill: active ? "#60a5fa" : "#081428", scale: active ? [1,1.3,1] : 1 }}
+                        transition={{ repeat: active ? Infinity : 0, duration: 0.6 }} />
+                      <rect x="0" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+                      <rect x="46" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+                      <rect x="10" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+                      <rect x="29" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+                    </svg>
+                  );
+
+                  const RobotSlot = ({
+                    isRed, isOnLeft, active
+                  }: { isRed: boolean; isOnLeft: boolean; active: boolean }) => {
+                    const lungeDir = isOnLeft ? 22 : -22;
+                    const retreatDir = isOnLeft ? -6 : 6;
+                    const color = isRed ? "#e05252" : "#60a5fa";
+                    const label = isRed ? "Rewriter" : "Scorer";
+                    const labelColor = isRed ? (active ? "text-rose-400" : "text-rose-900") : (active ? "text-blue-400" : "text-blue-900/60");
                     return (
                       <div className="flex flex-col items-center gap-1.5 flex-1">
-                        <div style={{ position: "relative" }}>
-                          {rewriterActive && (
-                            <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #e05252", opacity: 0.6 }} className="clash-fx" />
-                          )}
-                          <div className={rewriterActive ? "lunge-r" : "bob"}>
-                            <svg width="52" height="72" viewBox="0 0 52 72" fill="none">
-                              <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
-                              <circle cx="26" cy="4" r="3" fill={rewriterActive ? "#e05252" : "#4a1a1a"} className={rewriterActive ? "spark1" : ""}/>
-                              <rect x="8" y="9" width="36" height="26" rx="5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth={rewriterActive ? 2 : 1.5}/>
-                              <rect x="13" y="17" width="10" height="8" rx="2" fill={rewriterActive ? "#e05252" : "#2a2a36"}/>
-                              <rect x="29" y="17" width="10" height="8" rx="2" fill={rewriterActive ? "#e05252" : "#2a2a36"}/>
-                              <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={rewriterActive ? 1 : 0.3}/>
-                              <rect x="6" y="38" width="40" height="26" rx="5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth={rewriterActive ? 2 : 1.5}/>
-                              <circle cx="26" cy="51" r="5" fill={rewriterActive ? "#e05252" : "#2a1a1a"} opacity="0.9"/>
-                              <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
-                              <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
-                              <rect x="10" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
-                              <rect x="29" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
-                            </svg>
-                          </div>
-                        </div>
+                        <motion.div
+                          animate={active ? {
+                            x: lungeDir, scale: 1.18, rotate: isOnLeft ? -10 : 10,
+                            filter: `drop-shadow(0 0 20px ${color}) drop-shadow(0 0 8px ${color})`
+                          } : {
+                            x: retreatDir, scale: 0.88, rotate: 0,
+                            filter: "drop-shadow(0 0 0px transparent)"
+                          }}
+                          transition={{ type: "spring", stiffness: 280, damping: 18 }}
+                        >
+                          <motion.div
+                            animate={active ? { y: 0 } : { y: [0, -5, 0] }}
+                            transition={{ repeat: active ? 0 : Infinity, duration: 1.5, ease: "easeInOut" }}
+                          >
+                            {isRed
+                              ? <RedRobot  active={active} facingRight={isOnLeft} />
+                              : <BlueRobot active={active} facingLeft={!isOnLeft} />
+                            }
+                          </motion.div>
+                        </motion.div>
                         <div className="flex items-center gap-1">
-                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", rewriterActive ? "text-rose-400" : "text-rose-900")}>Rewriter</span>
-                          {rewriterActive && <span className="text-[8px] text-rose-400 animate-pulse">●</span>}
+                          {!isOnLeft && active && <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`} animate={{ opacity: [1,0,1] }} transition={{ repeat: Infinity, duration: 0.6 }}>●</motion.span>}
+                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", labelColor)}>{label}</span>
+                          {isOnLeft && active && <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`} animate={{ opacity: [1,0,1] }} transition={{ repeat: Infinity, duration: 0.6 }}>●</motion.span>}
                         </div>
                       </div>
                     );
-                  })()}
+                  };
 
-                  {/* Battle zone */}
-                  <div className="flex flex-col items-center gap-1 w-16 flex-shrink-0">
-                    <div className="relative w-12 h-12 flex items-center justify-center">
-                      <div className="clash-fx text-xl">⚡</div>
-                      <span className="spark1 absolute top-0 right-1 text-[10px]">✦</span>
-                      <span className="spark2 absolute bottom-0 left-1 text-[10px]">✦</span>
-                      <span className="spark3 absolute top-1 left-0 text-[10px] text-yellow-400">✦</span>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[11px] font-black text-foreground/80">
-                        {phase.status === "synthesizing" ? "FINAL" : `R${getCurrentRound()}/${getTotalRounds()}`}
-                      </div>
-                      <div className="text-[8px] text-muted-foreground/50 uppercase tracking-wider">round</div>
-                    </div>
-                  </div>
+                  const leftIsRed  = rewriterOnLeft;
+                  const leftActive  = leftIsRed ? rewriterActive : scorerActive;
+                  const rightActive = leftIsRed ? scorerActive  : rewriterActive;
 
-                  {/* Scorer robot (blue) — active during chatgpt_done */}
-                  {(() => {
-                    const scorerActive = phase.status === "chatgpt_done";
-                    return (
-                      <div className="flex flex-col items-center gap-1.5 flex-1">
-                        <div style={{ position: "relative" }}>
-                          {scorerActive && (
-                            <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #60a5fa", opacity: 0.6 }} className="clash-fx" />
-                          )}
-                          <div className={scorerActive ? "lunge-l" : "bob"} style={{ animationDelay: "0.2s" }}>
-                            <svg width="52" height="72" viewBox="0 0 52 72" fill="none" style={{ transform: "scaleX(-1)" }}>
-                              <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
-                              <circle cx="26" cy="4" r="3" fill={scorerActive ? "#60a5fa" : "#0f1e30"} className={scorerActive ? "spark2" : ""}/>
-                              <rect x="8" y="9" width="36" height="26" rx="5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth={scorerActive ? 2 : 1.5}/>
-                              <rect x="13" y="17" width="10" height="8" rx="2" fill={scorerActive ? "#60a5fa" : "#1a2a3a"}/>
-                              <rect x="29" y="17" width="10" height="8" rx="2" fill={scorerActive ? "#60a5fa" : "#1a2a3a"}/>
-                              <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={scorerActive ? 1 : 0.3}/>
-                              <rect x="6" y="38" width="40" height="26" rx="5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth={scorerActive ? 2 : 1.5}/>
-                              <circle cx="26" cy="51" r="5" fill={scorerActive ? "#60a5fa" : "#0a1a2a"} opacity="0.9"/>
-                              <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
-                              <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
-                              <rect x="10" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
-                              <rect x="29" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
-                            </svg>
+                  return (
+                    <>
+                      {/* Arena row */}
+                      <div className="flex items-end justify-between gap-0 mb-3">
+                        <RobotSlot isRed={leftIsRed}  isOnLeft={true}  active={leftActive}  />
+
+                        {/* Clash zone */}
+                        <div className="flex flex-col items-center gap-0.5 w-14 flex-shrink-0 pb-7">
+                          <motion.div className="text-2xl leading-none"
+                            animate={clashing
+                              ? { scale: [0.8, 1.5, 0.8], opacity: [0.5, 1, 0.5], rotate: [0, 15, -15, 0] }
+                              : { scale: 0.7, opacity: 0.3 }}
+                            transition={{ repeat: clashing ? Infinity : 0, duration: 0.45 }}
+                          >⚡</motion.div>
+                          <motion.div className="text-[10px] text-yellow-300 leading-none"
+                            animate={clashing ? { opacity: [0,1,0], y: [-2,2,-2] } : { opacity: 0 }}
+                            transition={{ repeat: Infinity, duration: 0.35, delay: 0.1 }}
+                          >✦</motion.div>
+                          <div className="text-center mt-1">
+                            <div className="text-[11px] font-black text-foreground/80">
+                              {phase.status === "synthesizing" ? "FINAL" : `R${getCurrentRound()}/${getTotalRounds()}`}
+                            </div>
                           </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {scorerActive && <span className="text-[8px] text-blue-400 animate-pulse">●</span>}
-                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", scorerActive ? "text-blue-400" : "text-blue-900")}>Scorer</span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                </div>
 
-                {/* Status + round list */}
-                <div className="border-t border-white/[0.05] pt-3 space-y-2">
-                  <p className="text-xs text-center text-muted-foreground font-mono">{getStatusLabel()}</p>
-                  <div className="flex justify-center gap-2 flex-wrap">
-                    {Array.from({ length: getTotalRounds() }).map((_, i) => {
-                      const done = getCompletedRounds().find(r => r.round === i + 1);
-                      const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
-                      return (
-                        <div key={i} className={cn(
-                          "flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border",
-                          done ? "border-primary/40 bg-primary/10 text-primary" :
-                          active ? "border-primary/60 bg-primary/20 text-primary animate-pulse" :
-                          "border-border/20 text-muted-foreground/40"
-                        )}>
-                          {done ? <Check className="w-2.5 h-2.5" /> : <span className="w-2.5 h-2.5 flex items-center justify-center">{i + 1}</span>}
-                          {done ? `${done.geminiScore}/10` : `R${i + 1}`}
-                        </div>
-                      );
-                    })}
-                    {phase.status === "synthesizing" && (
-                      <div className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border border-primary/60 bg-primary/20 text-primary animate-pulse">
-                        <Sparkles className="w-2.5 h-2.5" /> final
+                        <RobotSlot isRed={!leftIsRed} isOnLeft={false} active={rightActive} />
                       </div>
-                    )}
-                  </div>
-                </div>
+
+                      {/* Status + rounds */}
+                      <div className="border-t border-white/[0.05] pt-3 space-y-2">
+                        <p className="text-xs text-center text-muted-foreground font-mono">{getStatusLabel()}</p>
+                        <div className="flex justify-center gap-2 flex-wrap">
+                          {Array.from({ length: getTotalRounds() }).map((_, i) => {
+                            const done   = getCompletedRounds().find(r => r.round === i + 1);
+                            const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
+                            return (
+                              <div key={i} className={cn(
+                                "flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border",
+                                done   ? "border-primary/40 bg-primary/10 text-primary" :
+                                active ? "border-primary/60 bg-primary/20 text-primary animate-pulse" :
+                                         "border-border/20 text-muted-foreground/40"
+                              )}>
+                                {done ? <Check className="w-2.5 h-2.5" /> : <span className="w-2.5 h-2.5 flex items-center justify-center">{i + 1}</span>}
+                                {done ? `${done.geminiScore}/10` : `R${i + 1}`}
+                              </div>
+                            );
+                          })}
+                          {phase.status === "synthesizing" && (
+                            <div className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border border-primary/60 bg-primary/20 text-primary animate-pulse">
+                              <Sparkles className="w-2.5 h-2.5" /> final
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  );
+                })()}
               </CardContent>
             </Card>
           )}

@@ -503,11 +503,9 @@ export function Home() {
     rec.continuous = true;
     rec.interimResults = false;
     rec.onresult = (e: any) => {
-      const transcript = Array.from(e.results as any[])
-        .map((r: any) => r[0].transcript)
-        .join(" ");
+      const newTranscript = e.results[e.results.length - 1][0].transcript;
       const current = form.getValues("prompt");
-      form.setValue("prompt", current ? `${current} ${transcript}` : transcript, { shouldValidate: true });
+      form.setValue("prompt", current ? `${current} ${newTranscript}` : newTranscript, { shouldValidate: true });
     };
     rec.onerror = () => setIsListening(false);
     rec.onend = () => setIsListening(false);

@@ -16,7 +16,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center shadow-[0_0_15px_rgba(124,58,237,0.4)]">
             <Sparkles className="w-3.5 h-3.5 text-white" />
           </div>
-          <span className="font-bold text-base tracking-tight">PromptLoop</span>
+          <span className="font-bold text-base tracking-tight font-mono">prompt_lab</span>
         </div>
 
         <nav className="flex-1 px-3 space-y-0.5 pt-1">
@@ -63,7 +63,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
             </div>
-            <span className="font-bold tracking-tight text-sm">PromptLoop</span>
+            <span className="font-bold tracking-tight text-sm font-mono">prompt_lab</span>
           </div>
           <div className="flex gap-1">
             <Link href="/" className={cn("px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",

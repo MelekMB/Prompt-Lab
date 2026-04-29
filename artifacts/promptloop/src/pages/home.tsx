@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from "react";
-import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -26,117 +25,6 @@ import { AVATAR_COLORS, LEADERBOARD_SUBJECTS, type LeaderboardSubject } from "@w
 
 const IDENTITY_KEY = "prompt_labs_identity";
 interface Identity { handle: string; avatarColor: string; }
-
-/* ── Battle arena components (defined at module level so React never remounts them) ── */
-function RedRobotSvg({ active, flipped }: { active: boolean; flipped: boolean }) {
-  return (
-    <svg width="68" height="92" viewBox="0 0 52 72" fill="none"
-      style={{ transform: flipped ? "scaleX(-1)" : "none", display: "block" }}>
-      <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
-      <motion.circle cx="26" cy="4" r="3"
-        animate={{ fill: active ? "#e05252" : "#3a1a1a", scale: active ? [1, 1.7, 1] : 1 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.45 }} />
-      <rect x="8" y="9" width="36" height="26" rx="5" fill="#1a1a22"
-        stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
-      <motion.rect x="13" y="17" width="10" height="8" rx="2"
-        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1, 0.4, 1] : 0.5 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.38 }} />
-      <motion.rect x="29" y="17" width="10" height="8" rx="2"
-        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1, 0.4, 1] : 0.5 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.38, delay: 0.06 }} />
-      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={active ? 0.9 : 0.18}/>
-      <rect x="6" y="38" width="40" height="26" rx="5" fill="#1a1a22"
-        stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
-      <motion.circle cx="26" cy="51" r="6"
-        animate={{ fill: active ? "#e05252" : "#2a1010", scale: active ? [1, 1.35, 1] : 1 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.55 }} />
-      <rect x="0" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-      <rect x="46" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-      <rect x="10" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-      <rect x="29" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-    </svg>
-  );
-}
-
-function BlueRobotSvg({ active, flipped }: { active: boolean; flipped: boolean }) {
-  return (
-    <svg width="68" height="92" viewBox="0 0 52 72" fill="none"
-      style={{ transform: flipped ? "scaleX(-1)" : "none", display: "block" }}>
-      <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
-      <motion.circle cx="26" cy="4" r="3"
-        animate={{ fill: active ? "#60a5fa" : "#0a1828", scale: active ? [1, 1.7, 1] : 1 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.45 }} />
-      <rect x="8" y="9" width="36" height="26" rx="5" fill="#0c1420"
-        stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
-      <motion.rect x="13" y="17" width="10" height="8" rx="2"
-        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1, 0.4, 1] : 0.5 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.38 }} />
-      <motion.rect x="29" y="17" width="10" height="8" rx="2"
-        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1, 0.4, 1] : 0.5 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.38, delay: 0.06 }} />
-      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={active ? 0.9 : 0.18}/>
-      <rect x="6" y="38" width="40" height="26" rx="5" fill="#0c1420"
-        stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
-      <motion.circle cx="26" cy="51" r="6"
-        animate={{ fill: active ? "#60a5fa" : "#081428", scale: active ? [1, 1.35, 1] : 1 }}
-        transition={{ repeat: active ? Infinity : 0, duration: 0.55 }} />
-      <rect x="0" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-      <rect x="46" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-      <rect x="10" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-      <rect x="29" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-    </svg>
-  );
-}
-
-function BattleRobot({ isRed, isOnLeft, active }: { isRed: boolean; isOnLeft: boolean; active: boolean }) {
-  const label = isRed ? "Rewriter" : "Scorer";
-  const accentColor = isRed ? "#e05252" : "#60a5fa";
-  const lungeX   = isOnLeft ? 24 : -24;
-  const retreatX = isOnLeft ? -8 : 8;
-  const labelClass = isRed
-    ? (active ? "text-rose-400" : "text-rose-900/60")
-    : (active ? "text-blue-400" : "text-blue-900/40");
-
-  return (
-    <div className="flex flex-col items-center gap-2 flex-1">
-      {/* Glow ring behind robot — visible only when active */}
-      <div className="relative flex items-center justify-center">
-        <motion.div
-          className="absolute rounded-full"
-          style={{ width: 90, height: 90, background: accentColor }}
-          animate={{ opacity: active ? [0.15, 0.35, 0.15] : 0, scale: active ? [0.9, 1.1, 0.9] : 0.8 }}
-          transition={{ repeat: Infinity, duration: 0.7 }}
-        />
-        <motion.div
-          animate={active
-            ? { x: lungeX, scale: 1.25, rotate: isOnLeft ? -12 : 12, opacity: 1 }
-            : { x: retreatX, scale: 0.75, rotate: 0, opacity: 0.35 }}
-          transition={{ type: "spring", stiffness: 240, damping: 15 }}
-        >
-          <motion.div
-            animate={active ? { y: [0, -4, 0] } : { y: [0, -3, 0] }}
-            transition={{ repeat: Infinity, duration: active ? 0.5 : 2, ease: "easeInOut" }}
-          >
-            {isRed
-              ? <RedRobotSvg  active={active} flipped={!isOnLeft} />
-              : <BlueRobotSvg active={active} flipped={isOnLeft}  />}
-          </motion.div>
-        </motion.div>
-      </div>
-      <div className="flex items-center gap-1">
-        {!isOnLeft && active && (
-          <motion.span className="text-[9px]" style={{ color: accentColor }}
-            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.5 }}>●</motion.span>
-        )}
-        <span className={cn("text-[10px] font-bold tracking-widest uppercase", labelClass)}>{label}</span>
-        {isOnLeft && active && (
-          <motion.span className="text-[9px]" style={{ color: accentColor }}
-            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.5 }}>●</motion.span>
-        )}
-      </div>
-    </div>
-  );
-}
 function getIdentity(): Identity | null {
   try { const r = localStorage.getItem(IDENTITY_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
 }
@@ -510,34 +398,31 @@ export function Home() {
 
           switch (event.type) {
             case "round_start":
-              flushSync(() => setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number }));
-              await new Promise(r => requestAnimationFrame(r));
+              setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number });
               break;
             case "chatgpt_done":
-              flushSync(() => setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
-                ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev));
-              await new Promise(r => requestAnimationFrame(r));
+              setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
+                ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev);
               break;
             case "round_done": {
               const rd = event.data as RoundResult;
               completedRounds.push(rd);
-              flushSync(() => setPhase({ status: "round_done", round: event.round as number, totalRounds: data.rounds, completedRounds: [...completedRounds] }));
-              await new Promise(r => requestAnimationFrame(r));
+              setPhase({ status: "round_done", round: event.round as number, totalRounds: data.rounds, completedRounds: [...completedRounds] });
               break;
             }
             case "synthesizing":
-              flushSync(() => setPhase({ status: "synthesizing", totalRounds: data.rounds, completedRounds: [...completedRounds] }));
-              await new Promise(r => requestAnimationFrame(r));
+              setPhase({ status: "synthesizing", totalRounds: data.rounds, completedRounds: [...completedRounds] });
               break;
             case "complete": {
               const result = event.data as ImprovePromptResponse;
-              flushSync(() => { setPhase({ status: "complete", result }); setSelectedRound(1); });
+              setPhase({ status: "complete", result });
+              setSelectedRound(1);
               if (result.finalScore >= 7) fireConfetti();
               toast({ title: `Done! Score: ${result.finalScore}/10`, description: `${result.rounds.length} rounds of optimization complete.` });
               break;
             }
             case "error":
-              flushSync(() => setPhase({ status: "error", message: event.message as string }));
+              setPhase({ status: "error", message: event.message as string });
               toast({ title: "Failed", description: event.message as string, variant: "destructive" });
               break;
           }
@@ -836,76 +721,55 @@ export function Home() {
         {/* Right: Output panel */}
         <div className="space-y-4">
 
-          {/* Loading — fighting robots */}
+          {/* Loading */}
           {isRunning && (
             <Card className="border-primary/30 shadow-[0_0_40px_rgba(192,57,43,0.12)] relative overflow-hidden bg-card/60">
-              {/* Progress bar */}
               <div className="absolute top-0 left-0 w-full h-0.5 bg-border/30">
                 <motion.div className="h-full bg-gradient-to-r from-rose-500 to-red-400"
                   animate={{ width: `${progressPct}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
               </div>
-
-              <CardContent className="pt-5 pb-5">
-                {(() => {
-                  const rewriterActive = phase.status === "round_start";
-                  const scorerActive   = phase.status === "chatgpt_done";
-                  const clashing       = rewriterActive || scorerActive;
-                  const roundNum       = getCurrentRound() || 1;
-                  const rewriterOnLeft = roundNum % 2 !== 0;
-                  const leftIsRed      = rewriterOnLeft;
-                  const leftActive     = leftIsRed ? rewriterActive : scorerActive;
-                  const rightActive    = leftIsRed ? scorerActive   : rewriterActive;
-                  return (
-                    <>
-                      <div className="flex items-end justify-between gap-0 mb-3">
-                        <BattleRobot isRed={leftIsRed}  isOnLeft={true}  active={leftActive}  />
-                        <div className="flex flex-col items-center gap-0.5 w-14 flex-shrink-0 pb-7">
-                          <motion.div className="text-2xl leading-none select-none"
-                            animate={clashing
-                              ? { scale: [0.8, 1.6, 0.8], opacity: [0.5, 1, 0.5], rotate: [0, 18, -18, 0] }
-                              : { scale: 0.7, opacity: 0.25 }}
-                            transition={{ repeat: clashing ? Infinity : 0, duration: 0.42 }}
-                          >⚡</motion.div>
-                          <motion.div className="text-[10px] text-yellow-300 leading-none select-none"
-                            animate={clashing ? { opacity: [0, 1, 0], y: [-3, 3, -3] } : { opacity: 0 }}
-                            transition={{ repeat: Infinity, duration: 0.32, delay: 0.12 }}
-                          >✦</motion.div>
-                          <div className="text-center mt-1">
-                            <div className="text-[11px] font-black text-foreground/80">
-                              {phase.status === "synthesizing" ? "FINAL" : `R${getCurrentRound()}/${getTotalRounds()}`}
-                            </div>
-                          </div>
+              <CardContent className="pt-8 pb-6 flex flex-col items-center space-y-5 text-center">
+                <div className="relative w-14 h-14">
+                  <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" style={{ animationDuration: "3s" }} />
+                  <div className="absolute inset-2 rounded-full border-r-2 border-primary/50 animate-spin" style={{ animationDuration: "2s", animationDirection: "reverse" }} />
+                  <div className="absolute inset-[14px] flex items-center justify-center">
+                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">
+                    {phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
+                  </h3>
+                  <p className="text-sm text-muted-foreground mt-1 font-mono">{getStatusLabel()}</p>
+                </div>
+                <div className="w-full max-w-xs space-y-1.5 text-left">
+                  {Array.from({ length: getTotalRounds() }).map((_, i) => {
+                    const done = getCompletedRounds().find(r => r.round === i + 1);
+                    const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
+                    return (
+                      <div key={i} className="flex items-center gap-2.5 text-xs font-mono">
+                        <div className={cn("w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
+                          done ? "bg-primary text-primary-foreground" :
+                          active ? "bg-primary/20 border border-primary text-primary animate-pulse" :
+                          "bg-secondary text-muted-foreground")}>
+                          {done ? <Check className="w-3 h-3" /> : i + 1}
                         </div>
-                        <BattleRobot isRed={!leftIsRed} isOnLeft={false} active={rightActive} />
+                        <span className={done ? "text-foreground" : active ? "text-primary" : "text-muted-foreground"}>
+                          Iteration {i + 1}
+                          {done && <span className="ml-2 text-muted-foreground">— {done.geminiScore}/10</span>}
+                        </span>
                       </div>
-                      <div className="border-t border-white/[0.05] pt-3 space-y-2">
-                        <p className="text-xs text-center text-muted-foreground font-mono">{getStatusLabel()}</p>
-                        <div className="flex justify-center gap-2 flex-wrap">
-                          {Array.from({ length: getTotalRounds() }).map((_, i) => {
-                            const done   = getCompletedRounds().find(r => r.round === i + 1);
-                            const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
-                            return (
-                              <div key={i} className={cn(
-                                "flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border",
-                                done   ? "border-primary/40 bg-primary/10 text-primary" :
-                                active ? "border-primary/60 bg-primary/20 text-primary animate-pulse" :
-                                         "border-border/20 text-muted-foreground/40"
-                              )}>
-                                {done ? <Check className="w-2.5 h-2.5" /> : <span className="w-2.5 h-2.5 flex items-center justify-center">{i + 1}</span>}
-                                {done ? `${done.geminiScore}/10` : `R${i + 1}`}
-                              </div>
-                            );
-                          })}
-                          {phase.status === "synthesizing" && (
-                            <div className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border border-primary/60 bg-primary/20 text-primary animate-pulse">
-                              <Sparkles className="w-2.5 h-2.5" /> final
-                            </div>
-                          )}
-                        </div>
+                    );
+                  })}
+                  {phase.status === "synthesizing" && (
+                    <div className="flex items-center gap-2.5 text-xs font-mono mt-1">
+                      <div className="w-5 h-5 rounded flex items-center justify-center bg-primary/20 border border-primary text-primary animate-pulse flex-shrink-0">
+                        <Sparkles className="w-3 h-3" />
                       </div>
-                    </>
-                  );
-                })()}
+                      <span className="text-primary">Final synthesis</span>
+                    </div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}

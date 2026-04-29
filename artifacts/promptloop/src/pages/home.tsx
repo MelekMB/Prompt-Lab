@@ -25,6 +25,110 @@ import { AVATAR_COLORS, LEADERBOARD_SUBJECTS, type LeaderboardSubject } from "@w
 
 const IDENTITY_KEY = "prompt_labs_identity";
 interface Identity { handle: string; avatarColor: string; }
+
+/* ── Battle arena components (defined at module level so React never remounts them) ── */
+function RedRobotSvg({ active, flipped }: { active: boolean; flipped: boolean }) {
+  return (
+    <svg width="68" height="92" viewBox="0 0 52 72" fill="none"
+      style={{ transform: flipped ? "scaleX(-1)" : "none", display: "block" }}>
+      <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
+      <motion.circle cx="26" cy="4" r="3"
+        animate={{ fill: active ? "#e05252" : "#3a1a1a", scale: active ? [1, 1.7, 1] : 1 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.45 }} />
+      <rect x="8" y="9" width="36" height="26" rx="5" fill="#1a1a22"
+        stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
+      <motion.rect x="13" y="17" width="10" height="8" rx="2"
+        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1, 0.4, 1] : 0.5 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.38 }} />
+      <motion.rect x="29" y="17" width="10" height="8" rx="2"
+        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1, 0.4, 1] : 0.5 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.38, delay: 0.06 }} />
+      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={active ? 0.9 : 0.18}/>
+      <rect x="6" y="38" width="40" height="26" rx="5" fill="#1a1a22"
+        stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
+      <motion.circle cx="26" cy="51" r="6"
+        animate={{ fill: active ? "#e05252" : "#2a1010", scale: active ? [1, 1.35, 1] : 1 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.55 }} />
+      <rect x="0" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+      <rect x="46" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+      <rect x="10" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+      <rect x="29" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
+    </svg>
+  );
+}
+
+function BlueRobotSvg({ active, flipped }: { active: boolean; flipped: boolean }) {
+  return (
+    <svg width="68" height="92" viewBox="0 0 52 72" fill="none"
+      style={{ transform: flipped ? "scaleX(-1)" : "none", display: "block" }}>
+      <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
+      <motion.circle cx="26" cy="4" r="3"
+        animate={{ fill: active ? "#60a5fa" : "#0a1828", scale: active ? [1, 1.7, 1] : 1 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.45 }} />
+      <rect x="8" y="9" width="36" height="26" rx="5" fill="#0c1420"
+        stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
+      <motion.rect x="13" y="17" width="10" height="8" rx="2"
+        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1, 0.4, 1] : 0.5 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.38 }} />
+      <motion.rect x="29" y="17" width="10" height="8" rx="2"
+        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1, 0.4, 1] : 0.5 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.38, delay: 0.06 }} />
+      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={active ? 0.9 : 0.18}/>
+      <rect x="6" y="38" width="40" height="26" rx="5" fill="#0c1420"
+        stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
+      <motion.circle cx="26" cy="51" r="6"
+        animate={{ fill: active ? "#60a5fa" : "#081428", scale: active ? [1, 1.35, 1] : 1 }}
+        transition={{ repeat: active ? Infinity : 0, duration: 0.55 }} />
+      <rect x="0" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+      <rect x="46" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+      <rect x="10" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+      <rect x="29" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
+    </svg>
+  );
+}
+
+function BattleRobot({ isRed, isOnLeft, active }: { isRed: boolean; isOnLeft: boolean; active: boolean }) {
+  const color    = isRed ? "#e05252" : "#60a5fa";
+  const label    = isRed ? "Rewriter" : "Scorer";
+  const lungeX   = isOnLeft ? 20 : -20;
+  const retreatX = isOnLeft ? -4 : 4;
+  const labelClass = isRed
+    ? (active ? "text-rose-400" : "text-rose-900")
+    : (active ? "text-blue-400"  : "text-blue-900/50");
+
+  return (
+    <div className="flex flex-col items-center gap-1.5 flex-1">
+      <motion.div
+        animate={active
+          ? { x: lungeX, scale: 1.2, rotate: isOnLeft ? -10 : 10,
+              filter: `drop-shadow(0 0 22px ${color}) drop-shadow(0 0 10px ${color})` }
+          : { x: retreatX, scale: 0.86, rotate: 0,
+              filter: "drop-shadow(0 0 0px transparent)" }}
+        transition={{ type: "spring", stiffness: 260, damping: 16 }}
+      >
+        <motion.div
+          animate={active ? { y: 0 } : { y: [0, -6, 0] }}
+          transition={{ repeat: active ? 0 : Infinity, duration: 1.6, ease: "easeInOut" }}
+        >
+          {isRed
+            ? <RedRobotSvg  active={active} flipped={!isOnLeft} />
+            : <BlueRobotSvg active={active} flipped={isOnLeft}  />}
+        </motion.div>
+      </motion.div>
+      <div className="flex items-center gap-1">
+        {!isOnLeft && active && (
+          <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`}
+            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.55 }}>●</motion.span>
+        )}
+        <span className={cn("text-[10px] font-bold tracking-widest uppercase", labelClass)}>{label}</span>
+        {isOnLeft && active && (
+          <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`}
+            animate={{ opacity: [1, 0, 1] }} transition={{ repeat: Infinity, duration: 0.55 }}>●</motion.span>
+        )}
+      </div>
+    </div>
+  );
+}
 function getIdentity(): Identity | null {
   try { const r = localStorage.getItem(IDENTITY_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
 }
@@ -735,122 +839,25 @@ export function Home() {
                   const rewriterActive = phase.status === "round_start";
                   const scorerActive   = phase.status === "chatgpt_done";
                   const clashing       = rewriterActive || scorerActive;
-                  // Swap sides each round: odd → rewriter left, even → scorer left
                   const roundNum       = getCurrentRound() || 1;
                   const rewriterOnLeft = roundNum % 2 !== 0;
-
-                  const RedRobot = ({ active, facingRight }: { active: boolean; facingRight: boolean }) => (
-                    <svg width="64" height="88" viewBox="0 0 52 72" fill="none"
-                      style={{ transform: facingRight ? "none" : "scaleX(-1)" }}>
-                      <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
-                      <motion.circle cx="26" cy="4" r="3"
-                        animate={{ fill: active ? "#e05252" : "#3a1a1a", scale: active ? [1,1.6,1] : 1 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.5 }} />
-                      <rect x="8" y="9" width="36" height="26" rx="5" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
-                      <motion.rect x="13" y="17" width="10" height="8" rx="2"
-                        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1,0.5,1] : 0.6 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.4 }} />
-                      <motion.rect x="29" y="17" width="10" height="8" rx="2"
-                        animate={{ fill: active ? "#e05252" : "#1e1e2e", opacity: active ? [1,0.5,1] : 0.6 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.4, delay: 0.05 }} />
-                      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={active ? 0.9 : 0.2}/>
-                      <rect x="6" y="38" width="40" height="26" rx="5" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth={active ? 2 : 1}/>
-                      <motion.circle cx="26" cy="51" r="6"
-                        animate={{ fill: active ? "#e05252" : "#2a1010", scale: active ? [1,1.3,1] : 1 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.6 }} />
-                      <rect x="0" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-                      <rect x="46" y="40" width="6" height="20" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-                      <rect x="10" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-                      <rect x="29" y="66" width="13" height="7" rx="3" fill="#1a1a22" stroke={active ? "#e05252" : "#3a2020"} strokeWidth="1"/>
-                    </svg>
-                  );
-
-                  const BlueRobot = ({ active, facingLeft }: { active: boolean; facingLeft: boolean }) => (
-                    <svg width="64" height="88" viewBox="0 0 52 72" fill="none"
-                      style={{ transform: facingLeft ? "none" : "scaleX(-1)" }}>
-                      <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
-                      <motion.circle cx="26" cy="4" r="3"
-                        animate={{ fill: active ? "#60a5fa" : "#0a1828", scale: active ? [1,1.6,1] : 1 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.5 }} />
-                      <rect x="8" y="9" width="36" height="26" rx="5" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
-                      <motion.rect x="13" y="17" width="10" height="8" rx="2"
-                        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1,0.5,1] : 0.6 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.4 }} />
-                      <motion.rect x="29" y="17" width="10" height="8" rx="2"
-                        animate={{ fill: active ? "#60a5fa" : "#0f1e30", opacity: active ? [1,0.5,1] : 0.6 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.4, delay: 0.05 }} />
-                      <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={active ? 0.9 : 0.2}/>
-                      <rect x="6" y="38" width="40" height="26" rx="5" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth={active ? 2 : 1}/>
-                      <motion.circle cx="26" cy="51" r="6"
-                        animate={{ fill: active ? "#60a5fa" : "#081428", scale: active ? [1,1.3,1] : 1 }}
-                        transition={{ repeat: active ? Infinity : 0, duration: 0.6 }} />
-                      <rect x="0" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-                      <rect x="46" y="40" width="6" height="20" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-                      <rect x="10" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-                      <rect x="29" y="66" width="13" height="7" rx="3" fill="#0c1420" stroke={active ? "#60a5fa" : "#0a2040"} strokeWidth="1"/>
-                    </svg>
-                  );
-
-                  const RobotSlot = ({
-                    isRed, isOnLeft, active
-                  }: { isRed: boolean; isOnLeft: boolean; active: boolean }) => {
-                    const lungeDir = isOnLeft ? 22 : -22;
-                    const retreatDir = isOnLeft ? -6 : 6;
-                    const color = isRed ? "#e05252" : "#60a5fa";
-                    const label = isRed ? "Rewriter" : "Scorer";
-                    const labelColor = isRed ? (active ? "text-rose-400" : "text-rose-900") : (active ? "text-blue-400" : "text-blue-900/60");
-                    return (
-                      <div className="flex flex-col items-center gap-1.5 flex-1">
-                        <motion.div
-                          animate={active ? {
-                            x: lungeDir, scale: 1.18, rotate: isOnLeft ? -10 : 10,
-                            filter: `drop-shadow(0 0 20px ${color}) drop-shadow(0 0 8px ${color})`
-                          } : {
-                            x: retreatDir, scale: 0.88, rotate: 0,
-                            filter: "drop-shadow(0 0 0px transparent)"
-                          }}
-                          transition={{ type: "spring", stiffness: 280, damping: 18 }}
-                        >
-                          <motion.div
-                            animate={active ? { y: 0 } : { y: [0, -5, 0] }}
-                            transition={{ repeat: active ? 0 : Infinity, duration: 1.5, ease: "easeInOut" }}
-                          >
-                            {isRed
-                              ? <RedRobot  active={active} facingRight={isOnLeft} />
-                              : <BlueRobot active={active} facingLeft={!isOnLeft} />
-                            }
-                          </motion.div>
-                        </motion.div>
-                        <div className="flex items-center gap-1">
-                          {!isOnLeft && active && <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`} animate={{ opacity: [1,0,1] }} transition={{ repeat: Infinity, duration: 0.6 }}>●</motion.span>}
-                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", labelColor)}>{label}</span>
-                          {isOnLeft && active && <motion.span className={`text-[9px] ${isRed ? "text-rose-400" : "text-blue-400"}`} animate={{ opacity: [1,0,1] }} transition={{ repeat: Infinity, duration: 0.6 }}>●</motion.span>}
-                        </div>
-                      </div>
-                    );
-                  };
-
-                  const leftIsRed  = rewriterOnLeft;
-                  const leftActive  = leftIsRed ? rewriterActive : scorerActive;
-                  const rightActive = leftIsRed ? scorerActive  : rewriterActive;
-
+                  const leftIsRed      = rewriterOnLeft;
+                  const leftActive     = leftIsRed ? rewriterActive : scorerActive;
+                  const rightActive    = leftIsRed ? scorerActive   : rewriterActive;
                   return (
                     <>
-                      {/* Arena row */}
                       <div className="flex items-end justify-between gap-0 mb-3">
-                        <RobotSlot isRed={leftIsRed}  isOnLeft={true}  active={leftActive}  />
-
-                        {/* Clash zone */}
+                        <BattleRobot isRed={leftIsRed}  isOnLeft={true}  active={leftActive}  />
                         <div className="flex flex-col items-center gap-0.5 w-14 flex-shrink-0 pb-7">
-                          <motion.div className="text-2xl leading-none"
+                          <motion.div className="text-2xl leading-none select-none"
                             animate={clashing
-                              ? { scale: [0.8, 1.5, 0.8], opacity: [0.5, 1, 0.5], rotate: [0, 15, -15, 0] }
-                              : { scale: 0.7, opacity: 0.3 }}
-                            transition={{ repeat: clashing ? Infinity : 0, duration: 0.45 }}
+                              ? { scale: [0.8, 1.6, 0.8], opacity: [0.5, 1, 0.5], rotate: [0, 18, -18, 0] }
+                              : { scale: 0.7, opacity: 0.25 }}
+                            transition={{ repeat: clashing ? Infinity : 0, duration: 0.42 }}
                           >⚡</motion.div>
-                          <motion.div className="text-[10px] text-yellow-300 leading-none"
-                            animate={clashing ? { opacity: [0,1,0], y: [-2,2,-2] } : { opacity: 0 }}
-                            transition={{ repeat: Infinity, duration: 0.35, delay: 0.1 }}
+                          <motion.div className="text-[10px] text-yellow-300 leading-none select-none"
+                            animate={clashing ? { opacity: [0, 1, 0], y: [-3, 3, -3] } : { opacity: 0 }}
+                            transition={{ repeat: Infinity, duration: 0.32, delay: 0.12 }}
                           >✦</motion.div>
                           <div className="text-center mt-1">
                             <div className="text-[11px] font-black text-foreground/80">
@@ -858,11 +865,8 @@ export function Home() {
                             </div>
                           </div>
                         </div>
-
-                        <RobotSlot isRed={!leftIsRed} isOnLeft={false} active={rightActive} />
+                        <BattleRobot isRed={!leftIsRed} isOnLeft={false} active={rightActive} />
                       </div>
-
-                      {/* Status + rounds */}
                       <div className="border-t border-white/[0.05] pt-3 space-y-2">
                         <p className="text-xs text-center text-muted-foreground font-mono">{getStatusLabel()}</p>
                         <div className="flex justify-center gap-2 flex-wrap">

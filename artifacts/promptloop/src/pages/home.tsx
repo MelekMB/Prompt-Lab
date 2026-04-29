@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -115,8 +115,16 @@ function AnimatedBeforeAfter() {
   const [phase, setPhase] = useState<DemoPhase>("typing-before");
   const [displayed, setDisplayed] = useState("");
   const [pairIndex, setPairIndex] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const currentPair = DEMO_PAIRS[pairIndex];
+
+  // Auto-scroll to bottom as text types in
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [displayed]);
 
   useEffect(() => {
     let cancelled = false;
@@ -201,7 +209,7 @@ function AnimatedBeforeAfter() {
         )}
       </div>
 
-      <div className={cn("relative p-4 h-[260px] overflow-hidden", phase === "transition" && "flex items-center justify-center")}>
+      <div ref={scrollRef} className={cn("relative p-4 h-[260px] overflow-y-hidden", phase === "transition" && "flex items-center justify-center")}>
         {phase === "transition" ? (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />

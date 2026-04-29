@@ -501,7 +501,16 @@ export function Home() {
                       <Sparkles className="w-4 h-4 text-primary" />
                       <span className="font-mono font-bold text-primary text-sm">OPTIMIZED PROMPT</span>
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      {phase.result.roundPenalty > 0 && (
+                        <div className="text-right">
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
+                            <span className="text-gray-400">{phase.result.rawScore}/10</span>
+                            <span className="text-red-400/70">−{phase.result.roundPenalty}</span>
+                          </div>
+                          <div className="text-[9px] text-muted-foreground/60 font-mono">{phase.result.rounds.length}-round penalty</div>
+                        </div>
+                      )}
                       <ScoreRing score={phase.result.finalScore} />
                     </div>
                   </div>

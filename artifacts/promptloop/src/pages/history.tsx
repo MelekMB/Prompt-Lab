@@ -132,7 +132,7 @@ export function History() {
                         {format(new Date(session.createdAt), "MMM d, HH:mm")}
                       </Badge>
                       <Badge variant="secondary" className="font-mono">
-                        {session.finalScore}/100
+                        {session.finalScore}/10
                       </Badge>
                     </div>
                     <CardTitle className="text-sm font-mono line-clamp-2 leading-relaxed h-10">

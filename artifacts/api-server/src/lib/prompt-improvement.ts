@@ -4,7 +4,24 @@ import { logger } from "./logger";
 
 const OPENAI_SYSTEM_PROMPT = `You are an elite prompt engineer. Your job is to transform rough user prompts into clear, precise, high-performing prompts. Improve the prompt by adding role/persona, context, task definition, constraints, output format, evaluation criteria, and any missing assumptions. Do not add fake facts. Do not make the prompt unnecessarily long. Preserve the user's original intent. Return JSON with: improved_prompt, improvement_summary.`;
 
-const GEMINI_SYSTEM_PROMPT = `You are a strict prompt evaluator. Review the prompt for clarity, specificity, completeness, ambiguity, constraints, output format, and likelihood of producing a useful result. Give constructive critique and a score from 1 to 10. Return JSON with: critique, missing_details, score, suggested_next_changes.`;
+const GEMINI_SYSTEM_PROMPT = `You are an expert prompt quality judge. Your scores must follow a strict, calibrated rubric — most prompts should score between 4 and 7. High scores are rare and must be earned.
+
+SCORING RUBRIC (follow this exactly):
+1–2: Broken or nonsensical. Provides no useful direction whatsoever.
+3: Very vague. A one-liner with no role, no context, no structure. Would produce wildly inconsistent results.
+4: Minimal. Has some intent but lacks specificity, constraints, or output format. Below average.
+5: Functional but generic. Passable prompt that a casual user might write. Missing at least 2 of: role, context, constraints, output format.
+6: Decent. Clear task, some context. Missing 1 meaningful element (e.g., no output format, vague constraints).
+7: Solid. Has role, context, clear task, and at least one constraint. A competent prompt engineer would approve this. Most optimized prompts should land here.
+8: Professional grade. All key elements present and well-specified. Tight, unambiguous, likely to produce excellent results with any capable AI. Hard to improve meaningfully.
+9: Exceptional. A prompt engineer would struggle to find anything to improve. Near-flawless structure, specificity, and constraints.
+10: Flawless. Extremely rare — perfect in every dimension. Do not award 10 unless the prompt is genuinely the best possible version of itself.
+
+IMPORTANT: Be skeptical. Even well-structured prompts usually have something to improve. Scores of 9 or 10 should be awarded less than 5% of the time. If you are tempted to score above 8, ask yourself: "Could a prompt engineer improve this at all?" If yes, score lower.
+
+Evaluate: clarity, specificity, role definition, context, constraints, output format, and likelihood of consistent high-quality results.
+
+Return JSON with: critique, missing_details, score, suggested_next_changes.`;
 
 const FINAL_SYNTHESIS_PROMPT = `You are an elite prompt engineer finalizing the best version of a prompt. Using all the iterative improvements and critiques, produce the definitive optimized prompt. Structure it with clearly labeled sections:
 
@@ -30,6 +47,8 @@ export interface ImprovementResult {
   originalPrompt: string;
   rounds: RoundResult[];
   finalPrompt: string;
+  rawScore: number;
+  roundPenalty: number;
   finalScore: number;
 }
 
@@ -215,12 +234,19 @@ export async function runImprovementLoop(
 
   emit({ type: "synthesizing" });
   const finalPrompt = await synthesizeFinal(params.prompt, rounds);
-  const finalScore = rounds[rounds.length - 1]?.geminiScore ?? 0;
+  const rawScore = rounds[rounds.length - 1]?.geminiScore ?? 0;
+
+  // Round penalty: each extra round beyond 1 costs 0.3 points.
+  // Incentivises getting a high score in fewer iterations.
+  const roundPenalty = parseFloat(((roundCount - 1) * 0.3).toFixed(1));
+  const finalScore = parseFloat(Math.max(1, rawScore - roundPenalty).toFixed(1));
 
   const result: ImprovementResult = {
     originalPrompt: params.prompt,
     rounds,
     finalPrompt,
+    rawScore,
+    roundPenalty,
     finalScore,
   };
 

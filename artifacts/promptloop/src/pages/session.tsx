@@ -126,7 +126,7 @@ export function SessionView() {
              <CardContent className="p-4 flex items-center justify-between">
                 <div>
                   <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Final Quality Score</p>
-                  <p className="text-3xl font-bold font-mono text-primary">{session.finalScore}<span className="text-lg text-muted-foreground">/100</span></p>
+                  <p className="text-3xl font-bold font-mono text-primary">{session.finalScore}<span className="text-lg text-muted-foreground">/10</span></p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                   <Sparkles className="h-5 w-5 text-primary" />

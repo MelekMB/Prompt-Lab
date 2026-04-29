@@ -95,14 +95,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
           )}>
             🏆 Leaderboard
           </Link>
-          <Link href="/history" className={cn(
-            "px-4 py-1.5 rounded-lg text-sm font-medium transition-colors",
-            location.startsWith("/history") || location.startsWith("/session")
-              ? "text-foreground"
-              : "text-muted-foreground hover:text-foreground"
-          )}>
-            History
-          </Link>
           <Link href="/" className={cn(
             "px-4 py-1.5 rounded-full text-sm font-medium border transition-all",
             location === "/"

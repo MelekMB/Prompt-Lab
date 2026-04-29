@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Save, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Share2, Twitter } from "lucide-react";
+import { Sparkles, Copy, Check, Save, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -28,6 +28,80 @@ const EXAMPLE_PROMPTS = [
   "Write a product launch tweet",
   "Explain this concept simply",
 ];
+
+const DEMO_BEFORE = `write me a cold email to a vc`;
+const DEMO_AFTER = `Role: Expert startup fundraising advisor & copywriter.
+
+Task: Write a concise cold email to a VC.
+
+Context: First-time founder with early traction. Reader gets 200+ cold emails/week — earn attention in line 1.
+
+Requirements:
+- Max 150 words
+- Open with a specific metric, never a generic intro
+- Mention traction upfront (users / revenue / growth)
+- One clear ask: a 20-min call
+- No buzzwords
+
+Output Format:
+Subject: [compelling subject line]
+---
+[email body]`;
+
+function AnimatedBeforeAfter() {
+  const [phase, setPhase] = useState<"before" | "transition" | "after">("before");
+  const [displayText, setDisplayText] = useState(DEMO_BEFORE);
+  useEffect(() => {
+    const run = () => {
+      setPhase("before");
+      setDisplayText(DEMO_BEFORE);
+      const t1 = setTimeout(() => setPhase("transition"), 2500);
+      const t2 = setTimeout(() => { setPhase("after"); setDisplayText(DEMO_AFTER); }, 3200);
+      return [t1, t2];
+    };
+    const timers = run();
+    const interval = setInterval(() => { timers.forEach(clearTimeout); timers.splice(0); run().forEach(t => timers.push(t)); }, 10000);
+    return () => { timers.forEach(clearTimeout); clearInterval(interval); };
+  }, []);
+
+  return (
+    <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0f] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.05]">
+        <div className="flex items-center gap-2">
+          <div className={cn("w-2 h-2 rounded-full transition-colors duration-500", phase === "after" ? "bg-green-400" : "bg-yellow-400/70")} />
+          <span className="text-xs font-mono text-muted-foreground">
+            {phase === "before" ? "raw_prompt.txt" : phase === "transition" ? "optimizing..." : "optimized_prompt.md"}
+          </span>
+        </div>
+        {phase === "after" && (
+          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in">2/10 → 9/10</span>
+        )}
+      </div>
+
+      <div className={cn("relative p-4 min-h-[170px] transition-opacity duration-300", phase === "transition" ? "opacity-0" : "opacity-100")}>
+        <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">{displayText}</pre>
+        {phase === "before" && <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: 2/10</span>}
+        {phase === "after" && (
+          <div className="absolute bottom-3 right-3 animate-in fade-in">
+            <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span className="text-[10px] text-green-400 font-mono font-bold">9/10</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {phase === "transition" && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-xs text-primary font-mono">AI optimizing...</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 const formSchema = z.object({
   prompt: z.string().min(10, "Prompt must be at least 10 characters long."),
@@ -500,16 +574,27 @@ export function Home() {
             )}
           </AnimatePresence>
 
-          {/* Idle empty state */}
+          {/* Idle: animated demo + stats */}
           {phase.status === "idle" && (
-            <div className="rounded-2xl border border-border/30 bg-card/20 p-8 text-center space-y-3 min-h-[300px] flex flex-col items-center justify-center">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-violet-600/20 to-blue-600/20 border border-primary/20 flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-primary" />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">Live example</p>
               </div>
-              <h3 className="font-bold text-base">Ready to optimize</h3>
-              <p className="text-muted-foreground text-sm max-w-xs">
-                Type or pick an example prompt on the left, then hit <span className="text-primary font-medium">Make it better</span>.
-              </p>
+              <div className="relative">
+                <AnimatedBeforeAfter />
+              </div>
+              <div className="grid grid-cols-3 gap-3 text-center">
+                {[
+                  { label: "Prompts optimized", value: "12,400+" },
+                  { label: "Avg score boost", value: "+4.8pts" },
+                  { label: "Rounds avg", value: "3.2" },
+                ].map(stat => (
+                  <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-3">
+                    <p className="text-lg font-bold bg-gradient-to-r from-violet-400 to-blue-400 bg-clip-text text-transparent">{stat.value}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
         </div>

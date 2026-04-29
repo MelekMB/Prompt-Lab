@@ -581,8 +581,8 @@ export function Home() {
                 </div>
 
                 {/* Rounds + Submit row */}
-                <div className="border-t border-border/30 px-4 py-3 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
+                <div className="border-t border-border/30 px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="text-xs text-muted-foreground">Rounds</span>
                     <div className="flex gap-1">
                       {[1, 2, 3, 4, 5].map(n => (
@@ -601,7 +601,7 @@ export function Home() {
                     </div>
                   </div>
                   <Button type="submit" disabled={isRunning}
-                    className="bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white font-bold text-sm px-5 h-9 rounded-xl shadow-[0_0_20px_rgba(224,82,82,0.3)] hover:shadow-[0_0_25px_rgba(224,82,82,0.5)] transition-all border-0"
+                    className="ml-auto flex-shrink-0 bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white font-bold text-sm px-5 h-9 rounded-xl shadow-[0_0_20px_rgba(224,82,82,0.3)] hover:shadow-[0_0_25px_rgba(224,82,82,0.5)] transition-all border-0"
                   >
                     {isRunning ? <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Running...</> : <><Sparkles className="w-3.5 h-3.5 mr-2" />Make it better<ArrowRight className="w-3 h-3 ml-1.5" /></>}
                   </Button>

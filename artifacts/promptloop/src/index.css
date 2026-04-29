@@ -120,8 +120,8 @@
   --chart-4: 240 10% 20%;
   --chart-5: 240 10% 10%;
 
-  --app-font-sans: 'JetBrains Mono', 'Menlo', monospace;
-  --app-font-serif: 'JetBrains Mono', 'Menlo', monospace;
+  --app-font-sans: 'Inter', system-ui, sans-serif;
+  --app-font-serif: 'Inter', system-ui, sans-serif;
   --app-font-mono: 'JetBrains Mono', 'Menlo', monospace;
   --radius: 0.5rem;
   

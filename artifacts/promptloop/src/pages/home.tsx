@@ -591,7 +591,7 @@ export function Home() {
                           className={cn(
                             "w-7 h-7 rounded-lg text-xs font-bold transition-all border",
                             watchRounds === n
-                              ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(192,57,43,0.4)]"
+                              ? "bg-primary text-primary-foreground border-primary"
                               : "bg-secondary/50 text-muted-foreground border-border/30 hover:bg-secondary"
                           )}
                         >
@@ -601,7 +601,7 @@ export function Home() {
                     </div>
                   </div>
                   <Button type="submit" disabled={isRunning}
-                    className="bg-gradient-to-r from-red-700 to-rose-600 hover:from-red-600 hover:to-rose-500 text-white font-bold text-sm px-5 h-9 rounded-xl shadow-[0_0_20px_rgba(224,82,82,0.3)] hover:shadow-[0_0_25px_rgba(224,82,82,0.5)] transition-all border-0"
+                    className="bg-primary hover:bg-primary/90 text-white font-bold text-sm px-5 h-9 rounded-xl transition-colors border-0"
                   >
                     {isRunning ? <><Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />Running...</> : <><Sparkles className="w-3.5 h-3.5 mr-2" />Make it better<ArrowRight className="w-3 h-3 ml-1.5" /></>}
                   </Button>
@@ -657,7 +657,7 @@ export function Home() {
 
           {/* Loading */}
           {isRunning && (
-            <Card className="border-primary/30 shadow-[0_0_40px_rgba(192,57,43,0.12)] relative overflow-hidden bg-card/60">
+            <Card className="border-border/30 relative overflow-hidden bg-card/60">
               <div className="absolute top-0 left-0 w-full h-0.5 bg-border/30">
                 <motion.div className="h-full bg-gradient-to-r from-rose-500 to-red-400"
                   animate={{ width: `${progressPct}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
@@ -722,8 +722,8 @@ export function Home() {
               <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
 
                 {/* Final prompt card */}
-                <Card className="border-primary/40 shadow-[0_0_50px_rgba(192,57,43,0.15)] overflow-hidden bg-card">
-                  <div className="bg-gradient-to-r from-rose-500/10 to-red-500/10 border-b border-primary/20 px-4 py-3 flex items-center justify-between">
+                <Card className="border-border/40 overflow-hidden bg-card">
+                  <div className="border-b border-border/30 px-4 py-3 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-primary" />
                       <span className="font-mono font-bold text-primary text-sm">OPTIMIZED PROMPT</span>

@@ -325,6 +325,9 @@ export function Home() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [phase, setPhase] = useState<Phase>({ status: "idle" });
 
+  // Round viewer state
+  const [selectedRound, setSelectedRound] = useState<number | "final">(1);
+
   // Leaderboard state
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [lbStatus, setLbStatus] = useState<"idle" | "submitting" | "done">("idle");
@@ -413,6 +416,7 @@ export function Home() {
             case "complete": {
               const result = event.data as ImprovePromptResponse;
               setPhase({ status: "complete", result });
+              setSelectedRound(1);
               if (result.finalScore >= 7) fireConfetti();
               toast({ title: `Done! Score: ${result.finalScore}/10`, description: `${result.rounds.length} rounds of optimization complete.` });
               break;
@@ -762,41 +766,80 @@ export function Home() {
                   </CardFooter>
                 </Card>
 
-                {/* Round trace */}
+                {/* Round prompt viewer */}
                 <div className="space-y-3">
-                  <h3 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider border-b border-border/30 pb-2">Optimization Trace</h3>
-                  {phase.result.rounds.map((round, idx) => (
-                    <Card key={idx} className="bg-card/40 border-border/30">
-                      <div className="px-4 py-2 border-b border-border/20 flex items-center justify-between bg-secondary/10">
-                        <span className="font-mono text-xs font-semibold text-muted-foreground">Round {round.round}</span>
-                        <Badge variant="outline" className={cn("font-mono text-[10px]",
-                          round.geminiScore >= 8 ? "text-green-400 border-green-400/30" :
-                          round.geminiScore >= 6 ? "text-yellow-400 border-yellow-400/30" :
-                          "text-red-400 border-red-400/30")}>
-                          {round.geminiScore}/10
-                        </Badge>
+                  <div className="flex items-center justify-between border-b border-border/30 pb-2">
+                    <h3 className="font-mono text-xs font-bold text-muted-foreground uppercase tracking-wider">Prompt versions</h3>
+                    <span className="text-[10px] text-muted-foreground/50 font-mono">select a round to inspect</span>
+                  </div>
+
+                  {/* Round selector tabs */}
+                  <div className="flex gap-1.5 flex-wrap">
+                    {phase.result.rounds.map((round) => {
+                      const active = selectedRound === round.round;
+                      const scoreColor = round.geminiScore >= 8 ? "text-green-400 border-green-400/40 bg-green-400/10" :
+                                        round.geminiScore >= 6 ? "text-yellow-400 border-yellow-400/40 bg-yellow-400/10" :
+                                        "text-red-400 border-red-400/40 bg-red-400/10";
+                      return (
+                        <button key={round.round} type="button"
+                          onClick={() => setSelectedRound(round.round)}
+                          className={cn(
+                            "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all",
+                            active
+                              ? "bg-primary/20 border-primary/40 text-primary"
+                              : "bg-secondary/30 border-border/30 text-muted-foreground hover:text-foreground hover:border-border"
+                          )}>
+                          Round {round.round}
+                          <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border font-bold", active ? "bg-primary/20 border-primary/30 text-primary" : scoreColor)}>
+                            {round.geminiScore}/10
+                          </span>
+                        </button>
+                      );
+                    })}
+                    <button type="button"
+                      onClick={() => setSelectedRound("final")}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-all",
+                        selectedRound === "final"
+                          ? "bg-primary/20 border-primary/40 text-primary"
+                          : "bg-secondary/30 border-border/30 text-muted-foreground hover:text-foreground hover:border-border"
+                      )}>
+                      <Sparkles className="w-3 h-3" />
+                      Final
+                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border font-bold",
+                        selectedRound === "final"
+                          ? "bg-primary/20 border-primary/30 text-primary"
+                          : "text-green-400 border-green-400/40 bg-green-400/10")}>
+                        {phase.result.finalScore}/10
+                      </span>
+                    </button>
+                  </div>
+
+                  {/* Prompt display */}
+                  {(() => {
+                    const isRoundNum = typeof selectedRound === "number";
+                    const round = isRoundNum ? phase.result.rounds.find(r => r.round === selectedRound) : null;
+                    const promptText = round ? round.chatgptPrompt : phase.result.finalPrompt;
+                    const copyKey = `view-${selectedRound}`;
+                    return (
+                      <div className="relative group rounded-xl border border-border/20 overflow-hidden">
+                        <div className="flex items-center justify-between px-3 py-2 border-b border-border/20 bg-secondary/10">
+                          <span className="text-[10px] font-mono text-muted-foreground">
+                            {selectedRound === "final" ? "final_prompt.md" : `round_${selectedRound}_prompt.md`}
+                          </span>
+                          <Button size="icon" variant="ghost" className="h-6 w-6"
+                            onClick={() => copyToClipboard(promptText, copyKey)}>
+                            {copied === copyKey ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                          </Button>
+                        </div>
+                        <ScrollArea className="h-[200px] bg-[#0a0a0f]">
+                          <pre className="p-4 text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
+                            {promptText}
+                          </pre>
+                        </ScrollArea>
                       </div>
-                      <CardContent className="p-4 space-y-3">
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Critique</span>
-                          <p className="text-xs text-foreground/70 leading-relaxed italic border-l-2 border-primary/30 pl-3 mt-1">"{round.geminiCritique}"</p>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-bold text-muted-foreground">Refinement</span>
-                          <p className="text-xs text-foreground font-medium mt-1 mb-2">{round.improvementSummary}</p>
-                          <div className="relative group">
-                            <pre className="bg-[#0a0a0f] p-3 rounded-lg border border-border/20 text-[11px] font-mono text-gray-400 max-h-[90px] overflow-y-auto whitespace-pre-wrap">
-                              {round.chatgptPrompt}
-                            </pre>
-                            <Button size="icon" variant="ghost" className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                              onClick={() => copyToClipboard(round.chatgptPrompt, `r-${idx}`)}>
-                              {copied === `r-${idx}` ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                    );
+                  })()}
                 </div>
               </motion.div>
             )}

@@ -749,39 +749,42 @@ export function Home() {
                 {/* Arena */}
                 <div className="flex items-center justify-between gap-2 mb-4">
 
-                  {/* GPT robot (red) */}
-                  <div className="flex flex-col items-center gap-1.5 flex-1">
-                    <div className={phase.status === "round_start" || phase.status === "chatgpt_done" ? "lunge-r" : "bob"}>
-                      <svg width="52" height="72" viewBox="0 0 52 72" fill="none">
-                        {/* Antenna */}
-                        <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
-                        <circle cx="26" cy="4" r="3" fill={phase.status === "round_start" ? "#e05252" : "#4a1a1a"} className={phase.status === "round_start" ? "spark1" : ""}/>
-                        {/* Head */}
-                        <rect x="8" y="9" width="36" height="26" rx="5" fill="#1e1e24" stroke="#e05252" strokeWidth="1.5"/>
-                        {/* Eyes — glow when active */}
-                        <rect x="13" y="17" width="10" height="8" rx="2" fill={phase.status === "round_start" ? "#e05252" : "#2a2a36"}/>
-                        <rect x="29" y="17" width="10" height="8" rx="2" fill={phase.status === "round_start" ? "#e05252" : "#2a2a36"}/>
-                        {/* Mouth */}
-                        <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity="0.5"/>
-                        {/* Body */}
-                        <rect x="6" y="38" width="40" height="26" rx="5" fill="#1e1e24" stroke="#e05252" strokeWidth="1.5"/>
-                        {/* Chest light */}
-                        <circle cx="26" cy="51" r="5" fill={phase.status === "round_start" ? "#e05252" : "#2a1a1a"} opacity="0.9"/>
-                        {/* Arms */}
-                        <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
-                        <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
-                        {/* Legs */}
-                        <rect x="10" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
-                        <rect x="29" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
-                      </svg>
-                    </div>
-                    <span className="text-[10px] font-bold text-rose-400 tracking-widest uppercase">GPT-4o</span>
-                    <span className="text-[9px] text-muted-foreground/50">rewriter</span>
-                  </div>
+                  {/* Rewriter robot (red) — active during round_start */}
+                  {(() => {
+                    const rewriterActive = phase.status === "round_start";
+                    return (
+                      <div className="flex flex-col items-center gap-1.5 flex-1">
+                        <div style={{ position: "relative" }}>
+                          {rewriterActive && (
+                            <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #e05252", opacity: 0.6 }} className="clash-fx" />
+                          )}
+                          <div className={rewriterActive ? "lunge-r" : "bob"}>
+                            <svg width="52" height="72" viewBox="0 0 52 72" fill="none">
+                              <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
+                              <circle cx="26" cy="4" r="3" fill={rewriterActive ? "#e05252" : "#4a1a1a"} className={rewriterActive ? "spark1" : ""}/>
+                              <rect x="8" y="9" width="36" height="26" rx="5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth={rewriterActive ? 2 : 1.5}/>
+                              <rect x="13" y="17" width="10" height="8" rx="2" fill={rewriterActive ? "#e05252" : "#2a2a36"}/>
+                              <rect x="29" y="17" width="10" height="8" rx="2" fill={rewriterActive ? "#e05252" : "#2a2a36"}/>
+                              <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity={rewriterActive ? 1 : 0.3}/>
+                              <rect x="6" y="38" width="40" height="26" rx="5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth={rewriterActive ? 2 : 1.5}/>
+                              <circle cx="26" cy="51" r="5" fill={rewriterActive ? "#e05252" : "#2a1a1a"} opacity="0.9"/>
+                              <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
+                              <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
+                              <rect x="10" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
+                              <rect x="29" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke={rewriterActive ? "#e05252" : "#5a2a2a"} strokeWidth="1"/>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", rewriterActive ? "text-rose-400" : "text-rose-900")}>Rewriter</span>
+                          {rewriterActive && <span className="text-[8px] text-rose-400 animate-pulse">●</span>}
+                        </div>
+                      </div>
+                    );
+                  })()}
 
                   {/* Battle zone */}
                   <div className="flex flex-col items-center gap-1 w-16 flex-shrink-0">
-                    {/* Clash sparks */}
                     <div className="relative w-12 h-12 flex items-center justify-center">
                       <div className="clash-fx text-xl">⚡</div>
                       <span className="spark1 absolute top-0 right-1 text-[10px]">✦</span>
@@ -796,35 +799,39 @@ export function Home() {
                     </div>
                   </div>
 
-                  {/* Gemini robot (blue) */}
-                  <div className="flex flex-col items-center gap-1.5 flex-1">
-                    <div className={phase.status === "chatgpt_done" ? "lunge-l" : "bob"} style={{ animationDelay: "0.2s" }}>
-                      <svg width="52" height="72" viewBox="0 0 52 72" fill="none" style={{ transform: "scaleX(-1)" }}>
-                        {/* Antenna */}
-                        <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
-                        <circle cx="26" cy="4" r="3" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#0f1e30"} className={phase.status === "chatgpt_done" ? "spark2" : ""}/>
-                        {/* Head */}
-                        <rect x="8" y="9" width="36" height="26" rx="5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1.5"/>
-                        {/* Eyes */}
-                        <rect x="13" y="17" width="10" height="8" rx="2" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#1a2a3a"}/>
-                        <rect x="29" y="17" width="10" height="8" rx="2" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#1a2a3a"}/>
-                        {/* Mouth */}
-                        <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity="0.5"/>
-                        {/* Body */}
-                        <rect x="6" y="38" width="40" height="26" rx="5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1.5"/>
-                        {/* Chest light */}
-                        <circle cx="26" cy="51" r="5" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#0a1a2a"} opacity="0.9"/>
-                        {/* Arms */}
-                        <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
-                        <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
-                        {/* Legs */}
-                        <rect x="10" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
-                        <rect x="29" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
-                      </svg>
-                    </div>
-                    <span className="text-[10px] font-bold text-blue-400 tracking-widest uppercase">Gemini</span>
-                    <span className="text-[9px] text-muted-foreground/50">scorer</span>
-                  </div>
+                  {/* Scorer robot (blue) — active during chatgpt_done */}
+                  {(() => {
+                    const scorerActive = phase.status === "chatgpt_done";
+                    return (
+                      <div className="flex flex-col items-center gap-1.5 flex-1">
+                        <div style={{ position: "relative" }}>
+                          {scorerActive && (
+                            <div style={{ position: "absolute", inset: -6, borderRadius: "50%", border: "2px solid #60a5fa", opacity: 0.6 }} className="clash-fx" />
+                          )}
+                          <div className={scorerActive ? "lunge-l" : "bob"} style={{ animationDelay: "0.2s" }}>
+                            <svg width="52" height="72" viewBox="0 0 52 72" fill="none" style={{ transform: "scaleX(-1)" }}>
+                              <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
+                              <circle cx="26" cy="4" r="3" fill={scorerActive ? "#60a5fa" : "#0f1e30"} className={scorerActive ? "spark2" : ""}/>
+                              <rect x="8" y="9" width="36" height="26" rx="5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth={scorerActive ? 2 : 1.5}/>
+                              <rect x="13" y="17" width="10" height="8" rx="2" fill={scorerActive ? "#60a5fa" : "#1a2a3a"}/>
+                              <rect x="29" y="17" width="10" height="8" rx="2" fill={scorerActive ? "#60a5fa" : "#1a2a3a"}/>
+                              <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity={scorerActive ? 1 : 0.3}/>
+                              <rect x="6" y="38" width="40" height="26" rx="5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth={scorerActive ? 2 : 1.5}/>
+                              <circle cx="26" cy="51" r="5" fill={scorerActive ? "#60a5fa" : "#0a1a2a"} opacity="0.9"/>
+                              <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
+                              <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
+                              <rect x="10" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
+                              <rect x="29" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke={scorerActive ? "#60a5fa" : "#1a3a5a"} strokeWidth="1"/>
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {scorerActive && <span className="text-[8px] text-blue-400 animate-pulse">●</span>}
+                          <span className={cn("text-[10px] font-bold tracking-widest uppercase", scorerActive ? "text-blue-400" : "text-blue-900")}>Scorer</span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
 
                 {/* Status + round list */}

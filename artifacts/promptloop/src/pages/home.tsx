@@ -721,54 +721,137 @@ export function Home() {
         {/* Right: Output panel */}
         <div className="space-y-4">
 
-          {/* Loading */}
+          {/* Loading — fighting robots */}
           {isRunning && (
             <Card className="border-primary/30 shadow-[0_0_40px_rgba(192,57,43,0.12)] relative overflow-hidden bg-card/60">
+              <style>{`
+                @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+                @keyframes lunge-right { 0%,100%{transform:translateX(0) rotate(0deg)} 40%{transform:translateX(10px) rotate(-4deg)} }
+                @keyframes lunge-left  { 0%,100%{transform:translateX(0) rotate(0deg)} 40%{transform:translateX(-10px) rotate(4deg)} }
+                @keyframes spark { 0%,100%{opacity:0;transform:scale(0.5)} 50%{opacity:1;transform:scale(1.2)} }
+                @keyframes clash { 0%,100%{opacity:0.3;transform:scale(0.8)} 50%{opacity:1;transform:scale(1.3)} }
+                .bob { animation: bob 1.4s ease-in-out infinite; }
+                .lunge-r { animation: lunge-right 0.7s ease-in-out infinite; }
+                .lunge-l { animation: lunge-left  0.7s ease-in-out infinite; }
+                .spark1 { animation: spark 0.4s ease-in-out infinite; }
+                .spark2 { animation: spark 0.4s ease-in-out infinite 0.13s; }
+                .spark3 { animation: spark 0.4s ease-in-out infinite 0.26s; }
+                .clash-fx { animation: clash 0.5s ease-in-out infinite; }
+              `}</style>
+
+              {/* Progress bar */}
               <div className="absolute top-0 left-0 w-full h-0.5 bg-border/30">
                 <motion.div className="h-full bg-gradient-to-r from-rose-500 to-red-400"
                   animate={{ width: `${progressPct}%` }} transition={{ duration: 0.8, ease: "easeInOut" }} />
               </div>
-              <CardContent className="pt-8 pb-6 flex flex-col items-center space-y-5 text-center">
-                <div className="relative w-14 h-14">
-                  <div className="absolute inset-0 rounded-full border-t-2 border-primary animate-spin" style={{ animationDuration: "3s" }} />
-                  <div className="absolute inset-2 rounded-full border-r-2 border-primary/50 animate-spin" style={{ animationDuration: "2s", animationDirection: "reverse" }} />
-                  <div className="absolute inset-[14px] flex items-center justify-center">
-                    <Sparkles className="w-4 h-4 text-primary animate-pulse" />
+
+              <CardContent className="pt-6 pb-5">
+                {/* Arena */}
+                <div className="flex items-center justify-between gap-2 mb-4">
+
+                  {/* GPT robot (red) */}
+                  <div className="flex flex-col items-center gap-1.5 flex-1">
+                    <div className={phase.status === "round_start" || phase.status === "chatgpt_done" ? "lunge-r" : "bob"}>
+                      <svg width="52" height="72" viewBox="0 0 52 72" fill="none">
+                        {/* Antenna */}
+                        <line x1="26" y1="0" x2="26" y2="8" stroke="#e05252" strokeWidth="2"/>
+                        <circle cx="26" cy="4" r="3" fill={phase.status === "round_start" ? "#e05252" : "#4a1a1a"} className={phase.status === "round_start" ? "spark1" : ""}/>
+                        {/* Head */}
+                        <rect x="8" y="9" width="36" height="26" rx="5" fill="#1e1e24" stroke="#e05252" strokeWidth="1.5"/>
+                        {/* Eyes — glow when active */}
+                        <rect x="13" y="17" width="10" height="8" rx="2" fill={phase.status === "round_start" ? "#e05252" : "#2a2a36"}/>
+                        <rect x="29" y="17" width="10" height="8" rx="2" fill={phase.status === "round_start" ? "#e05252" : "#2a2a36"}/>
+                        {/* Mouth */}
+                        <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#e05252" opacity="0.5"/>
+                        {/* Body */}
+                        <rect x="6" y="38" width="40" height="26" rx="5" fill="#1e1e24" stroke="#e05252" strokeWidth="1.5"/>
+                        {/* Chest light */}
+                        <circle cx="26" cy="51" r="5" fill={phase.status === "round_start" ? "#e05252" : "#2a1a1a"} opacity="0.9"/>
+                        {/* Arms */}
+                        <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
+                        <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
+                        {/* Legs */}
+                        <rect x="10" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
+                        <rect x="29" y="66" width="13" height="6" rx="2" fill="#1e1e24" stroke="#e05252" strokeWidth="1"/>
+                      </svg>
+                    </div>
+                    <span className="text-[10px] font-bold text-rose-400 tracking-widest uppercase">GPT-4o</span>
+                    <span className="text-[9px] text-muted-foreground/50">rewriter</span>
+                  </div>
+
+                  {/* Battle zone */}
+                  <div className="flex flex-col items-center gap-1 w-16 flex-shrink-0">
+                    {/* Clash sparks */}
+                    <div className="relative w-12 h-12 flex items-center justify-center">
+                      <div className="clash-fx text-xl">⚡</div>
+                      <span className="spark1 absolute top-0 right-1 text-[10px]">✦</span>
+                      <span className="spark2 absolute bottom-0 left-1 text-[10px]">✦</span>
+                      <span className="spark3 absolute top-1 left-0 text-[10px] text-yellow-400">✦</span>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-[11px] font-black text-foreground/80">
+                        {phase.status === "synthesizing" ? "FINAL" : `R${getCurrentRound()}/${getTotalRounds()}`}
+                      </div>
+                      <div className="text-[8px] text-muted-foreground/50 uppercase tracking-wider">round</div>
+                    </div>
+                  </div>
+
+                  {/* Gemini robot (blue) */}
+                  <div className="flex flex-col items-center gap-1.5 flex-1">
+                    <div className={phase.status === "chatgpt_done" ? "lunge-l" : "bob"} style={{ animationDelay: "0.2s" }}>
+                      <svg width="52" height="72" viewBox="0 0 52 72" fill="none" style={{ transform: "scaleX(-1)" }}>
+                        {/* Antenna */}
+                        <line x1="26" y1="0" x2="26" y2="8" stroke="#60a5fa" strokeWidth="2"/>
+                        <circle cx="26" cy="4" r="3" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#0f1e30"} className={phase.status === "chatgpt_done" ? "spark2" : ""}/>
+                        {/* Head */}
+                        <rect x="8" y="9" width="36" height="26" rx="5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1.5"/>
+                        {/* Eyes */}
+                        <rect x="13" y="17" width="10" height="8" rx="2" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#1a2a3a"}/>
+                        <rect x="29" y="17" width="10" height="8" rx="2" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#1a2a3a"}/>
+                        {/* Mouth */}
+                        <rect x="14" y="28" width="24" height="3" rx="1.5" fill="#60a5fa" opacity="0.5"/>
+                        {/* Body */}
+                        <rect x="6" y="38" width="40" height="26" rx="5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1.5"/>
+                        {/* Chest light */}
+                        <circle cx="26" cy="51" r="5" fill={phase.status === "chatgpt_done" ? "#60a5fa" : "#0a1a2a"} opacity="0.9"/>
+                        {/* Arms */}
+                        <rect x="0" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
+                        <rect x="47" y="40" width="5" height="18" rx="2.5" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
+                        {/* Legs */}
+                        <rect x="10" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
+                        <rect x="29" y="66" width="13" height="6" rx="2" fill="#0f1624" stroke="#60a5fa" strokeWidth="1"/>
+                      </svg>
+                    </div>
+                    <span className="text-[10px] font-bold text-blue-400 tracking-widest uppercase">Gemini</span>
+                    <span className="text-[9px] text-muted-foreground/50">scorer</span>
                   </div>
                 </div>
-                <div>
-                  <h3 className="font-bold text-base">
-                    {phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-1 font-mono">{getStatusLabel()}</p>
-                </div>
-                <div className="w-full max-w-xs space-y-1.5 text-left">
-                  {Array.from({ length: getTotalRounds() }).map((_, i) => {
-                    const done = getCompletedRounds().find(r => r.round === i + 1);
-                    const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
-                    return (
-                      <div key={i} className="flex items-center gap-2.5 text-xs font-mono">
-                        <div className={cn("w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
-                          done ? "bg-primary text-primary-foreground" :
-                          active ? "bg-primary/20 border border-primary text-primary animate-pulse" :
-                          "bg-secondary text-muted-foreground")}>
-                          {done ? <Check className="w-3 h-3" /> : i + 1}
+
+                {/* Status + round list */}
+                <div className="border-t border-white/[0.05] pt-3 space-y-2">
+                  <p className="text-xs text-center text-muted-foreground font-mono">{getStatusLabel()}</p>
+                  <div className="flex justify-center gap-2 flex-wrap">
+                    {Array.from({ length: getTotalRounds() }).map((_, i) => {
+                      const done = getCompletedRounds().find(r => r.round === i + 1);
+                      const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
+                      return (
+                        <div key={i} className={cn(
+                          "flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border",
+                          done ? "border-primary/40 bg-primary/10 text-primary" :
+                          active ? "border-primary/60 bg-primary/20 text-primary animate-pulse" :
+                          "border-border/20 text-muted-foreground/40"
+                        )}>
+                          {done ? <Check className="w-2.5 h-2.5" /> : <span className="w-2.5 h-2.5 flex items-center justify-center">{i + 1}</span>}
+                          {done ? `${done.geminiScore}/10` : `R${i + 1}`}
                         </div>
-                        <span className={done ? "text-foreground" : active ? "text-primary" : "text-muted-foreground"}>
-                          Iteration {i + 1}
-                          {done && <span className="ml-2 text-muted-foreground">— {done.geminiScore}/10</span>}
-                        </span>
+                      );
+                    })}
+                    {phase.status === "synthesizing" && (
+                      <div className="flex items-center gap-1.5 text-[10px] font-mono px-2 py-1 rounded-lg border border-primary/60 bg-primary/20 text-primary animate-pulse">
+                        <Sparkles className="w-2.5 h-2.5" /> final
                       </div>
-                    );
-                  })}
-                  {phase.status === "synthesizing" && (
-                    <div className="flex items-center gap-2.5 text-xs font-mono mt-1">
-                      <div className="w-5 h-5 rounded flex items-center justify-center bg-primary/20 border border-primary text-primary animate-pulse flex-shrink-0">
-                        <Sparkles className="w-3 h-3" />
-                      </div>
-                      <span className="text-primary">Final synthesis</span>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

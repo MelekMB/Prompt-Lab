@@ -29,34 +29,99 @@ const EXAMPLE_PROMPTS = [
   "Explain this concept simply",
 ];
 
-const DEMO_BEFORE = `write me a cold email to a vc`;
-const DEMO_AFTER = `Role: Expert startup fundraising advisor & copywriter.
+const DEMO_PAIRS: { before: string; after: string; scoreFrom: number; scoreTo: number }[] = [
+  {
+    before: `write me a cold email to a vc`,
+    after: `Role: Startup fundraising advisor & copywriter.
 
 Task: Write a concise cold email to a VC.
 
-Context: First-time founder with early traction. Reader gets 200+ cold emails/week — earn attention in line 1.
+Context: First-time founder, early traction. Reader gets 200+ emails/week.
 
 Requirements:
 - Max 150 words
-- Open with a specific metric, never a generic intro
-- Mention traction upfront (users / revenue / growth)
-- One clear ask: a 20-min call
-- No buzzwords
+- Open with a specific metric, not a generic intro
+- State traction upfront (users / revenue / growth)
+- One ask: a 20-min call. No buzzwords.
 
-Output Format:
+Output:
 Subject: [compelling subject line]
 ---
-[email body]`;
+[email body]`,
+    scoreFrom: 2,
+    scoreTo: 9,
+  },
+  {
+    before: `help me prep for a job interview`,
+    after: `Role: Senior career coach specializing in tech interviews.
+
+Task: Create a structured interview prep plan.
+
+Context: Candidate has an upcoming technical + behavioral interview at a top-tier company.
+
+Requirements:
+- Cover STAR method for behavioral questions
+- List the 5 most common technical topics to review
+- Include 3 questions to ask the interviewer
+- Estimated prep time per section
+
+Output: A day-by-day prep schedule for 5 days`,
+    scoreFrom: 2,
+    scoreTo: 8,
+  },
+  {
+    before: `write a tweet about my product launch`,
+    after: `Role: Growth marketer & viral copywriter.
+
+Task: Write a product launch tweet that drives clicks.
+
+Context: Announcing a new tool to a tech-savvy audience on X/Twitter.
+
+Requirements:
+- Max 280 chars
+- Hook in the first 6 words
+- State the core benefit, not features
+- End with a clear CTA (link or reply)
+- Conversational tone — no corporate speak
+
+Output: 3 tweet variants (short / medium / thread-opener)`,
+    scoreFrom: 3,
+    scoreTo: 9,
+  },
+  {
+    before: `explain how transformers work`,
+    after: `Role: Technical educator who specialises in ML concepts.
+
+Task: Explain the Transformer architecture clearly.
+
+Audience: Software engineers with no ML background.
+
+Requirements:
+- Use an analogy before introducing math
+- Explain attention mechanism in plain English
+- Cover: tokens, embeddings, self-attention, feed-forward layers
+- Max 400 words
+- Avoid jargon without definition
+
+Output: Explanation + one simple diagram description`,
+    scoreFrom: 2,
+    scoreTo: 8,
+  },
+];
 
 type DemoPhase = "typing-before" | "pause-before" | "transition" | "typing-after" | "pause-after";
 
 function AnimatedBeforeAfter() {
   const [phase, setPhase] = useState<DemoPhase>("typing-before");
   const [displayed, setDisplayed] = useState("");
+  const [pairIndex, setPairIndex] = useState(0);
+
+  const currentPair = DEMO_PAIRS[pairIndex];
 
   useEffect(() => {
     let cancelled = false;
     let pendingTimer: ReturnType<typeof setTimeout> | null = null;
+    let idx = 0;
 
     const sleep = (ms: number) =>
       new Promise<void>(resolve => { pendingTimer = setTimeout(resolve, ms); });
@@ -71,10 +136,13 @@ function AnimatedBeforeAfter() {
 
     async function run() {
       while (!cancelled) {
+        const pair = DEMO_PAIRS[idx % DEMO_PAIRS.length];
+        setPairIndex(idx % DEMO_PAIRS.length);
+
         // 1. Type the before prompt
         setPhase("typing-before");
         setDisplayed("");
-        await typeText(DEMO_BEFORE, 55);
+        await typeText(pair.before, 55);
         if (cancelled) return;
 
         // 2. Pause so user can read it
@@ -82,7 +150,7 @@ function AnimatedBeforeAfter() {
         await sleep(1800);
         if (cancelled) return;
 
-        // 3. Transition (spinner)
+        // 3. Transition spinner
         setPhase("transition");
         setDisplayed("");
         await sleep(1600);
@@ -90,13 +158,15 @@ function AnimatedBeforeAfter() {
 
         // 4. Stream out the optimized result
         setPhase("typing-after");
-        await typeText(DEMO_AFTER, 10);
+        await typeText(pair.after, 10);
         if (cancelled) return;
 
-        // 5. Hold the final result
+        // 5. Hold the final result then move to next pair
         setPhase("pause-after");
-        await sleep(3500);
+        await sleep(3000);
         if (cancelled) return;
+
+        idx++;
       }
     }
 
@@ -126,7 +196,7 @@ function AnimatedBeforeAfter() {
         </div>
         {isDone && (
           <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in duration-500">
-            2/10 → 9/10
+            {currentPair.scoreFrom}/10 → {currentPair.scoreTo}/10
           </span>
         )}
       </div>
@@ -144,13 +214,13 @@ function AnimatedBeforeAfter() {
               {isTyping && <span className="animate-pulse text-primary">▋</span>}
             </pre>
             {phase === "pause-before" && (
-              <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: 2/10</span>
+              <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: {currentPair.scoreFrom}/10</span>
             )}
             {isDone && (
               <div className="absolute bottom-3 right-3 animate-in fade-in duration-500">
                 <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
                   <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <span className="text-[10px] text-green-400 font-mono font-bold">9/10</span>
+                  <span className="text-[10px] text-green-400 font-mono font-bold">{currentPair.scoreTo}/10</span>
                 </div>
               </div>
             )}

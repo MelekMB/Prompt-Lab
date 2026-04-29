@@ -83,7 +83,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </linearGradient>
             </defs>
           </svg>
-          <span className="font-bold text-base tracking-tight font-mono">prompt_lab</span>
+          <span className="font-bold text-base tracking-tight font-mono">prompt labs</span>
         </Link>
 
         <nav className="flex items-center gap-2">

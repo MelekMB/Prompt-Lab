@@ -86,8 +86,8 @@
   --popover-foreground: 0 0% 98%;
   --popover-border: 240 10% 15%;
 
-  /* Coral-red bold palette */
-  --primary: 5 72% 58%;
+  /* Bold red palette */
+  --primary: 0 80% 52%;
   --primary-foreground: 0 0% 100%;
   
   --secondary: 220 8% 13%;
@@ -96,7 +96,7 @@
   --muted: 220 8% 10%;
   --muted-foreground: 220 5% 60%;
 
-  --accent: 5 72% 58%;
+  --accent: 0 80% 52%;
   --accent-foreground: 0 0% 100%;
 
   --destructive: 0 62.8% 30.6%;
@@ -108,11 +108,11 @@
   --sidebar: 220 8% 4%;
   --sidebar-foreground: 0 0% 96%;
   --sidebar-border: 220 8% 11%;
-  --sidebar-primary: 5 72% 58%;
+  --sidebar-primary: 0 80% 52%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 8% 13%;
   --sidebar-accent-foreground: 0 0% 96%;
-  --sidebar-ring: 5 72% 58%;
+  --sidebar-ring: 0 80% 52%;
 
   --chart-1: 5 72% 58%;
   --chart-2: 240 10% 40%;

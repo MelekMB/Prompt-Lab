@@ -192,6 +192,7 @@ function AnimatedBeforeAfter() {
 
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0f] overflow-hidden">
+      {/* Header — scores always visible here, never inside scroll area */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.05]">
         <div className="flex items-center gap-2">
           <div className={cn(
@@ -202,37 +203,48 @@ function AnimatedBeforeAfter() {
             {isAfter ? "optimized_prompt.md" : phase === "transition" ? "optimizing..." : "raw_prompt.txt"}
           </span>
         </div>
-        {isDone && (
-          <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in duration-500">
-            {currentPair.scoreFrom}/10 → {currentPair.scoreTo}/10
-          </span>
-        )}
+
+        {/* Score always in header — transitions as phase changes */}
+        <div className="flex items-center gap-2">
+          {!isAfter && phase !== "transition" && (
+            <span className="text-[10px] text-muted-foreground font-mono">
+              score: {currentPair.scoreFrom}/10
+            </span>
+          )}
+          {isAfter && !isDone && (
+            <span className="text-[10px] text-muted-foreground font-mono">
+              {currentPair.scoreFrom}/10 →
+            </span>
+          )}
+          {isDone && (
+            <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in duration-300">
+              {currentPair.scoreFrom}/10 → {currentPair.scoreTo}/10
+            </span>
+          )}
+          {isAfter && (
+            <div className={cn(
+              "flex items-center gap-1 bg-green-500/10 border border-green-500/20 rounded-full px-2 py-0.5 transition-opacity duration-300",
+              isDone ? "opacity-100" : "opacity-60"
+            )}>
+              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+              <span className="text-[10px] text-green-400 font-mono font-bold">{currentPair.scoreTo}/10</span>
+            </div>
+          )}
+        </div>
       </div>
 
-      <div ref={scrollRef} className={cn("relative p-4 h-[260px] overflow-y-hidden", phase === "transition" && "flex items-center justify-center")}>
+      {/* Scroll area — no absolute overlays, just text + cursor */}
+      <div ref={scrollRef} className={cn("p-4 h-[260px] overflow-y-hidden", phase === "transition" && "flex items-center justify-center")}>
         {phase === "transition" ? (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-xs text-primary font-mono">AI optimizing...</span>
           </div>
         ) : (
-          <>
-            <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
-              {displayed}
-              {isTyping && <span className="animate-pulse text-primary">▋</span>}
-            </pre>
-            {phase === "pause-before" && (
-              <span className="absolute bottom-3 right-3 text-[10px] text-muted-foreground font-mono">score: {currentPair.scoreFrom}/10</span>
-            )}
-            {isDone && (
-              <div className="absolute bottom-3 right-3 animate-in fade-in duration-500">
-                <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                  <span className="text-[10px] text-green-400 font-mono font-bold">{currentPair.scoreTo}/10</span>
-                </div>
-              </div>
-            )}
-          </>
+          <pre className="text-xs font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
+            {displayed}
+            {isTyping && <span className="animate-pulse text-primary">▋</span>}
+          </pre>
         )}
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { flushSync } from "react-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -509,31 +510,30 @@ export function Home() {
 
           switch (event.type) {
             case "round_start":
-              setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number });
+              flushSync(() => setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number }));
               break;
             case "chatgpt_done":
-              setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
-                ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev);
+              flushSync(() => setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
+                ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev));
               break;
             case "round_done": {
               const rd = event.data as RoundResult;
               completedRounds.push(rd);
-              setPhase({ status: "round_done", round: event.round as number, totalRounds: data.rounds, completedRounds: [...completedRounds] });
+              flushSync(() => setPhase({ status: "round_done", round: event.round as number, totalRounds: data.rounds, completedRounds: [...completedRounds] }));
               break;
             }
             case "synthesizing":
-              setPhase({ status: "synthesizing", totalRounds: data.rounds, completedRounds: [...completedRounds] });
+              flushSync(() => setPhase({ status: "synthesizing", totalRounds: data.rounds, completedRounds: [...completedRounds] }));
               break;
             case "complete": {
               const result = event.data as ImprovePromptResponse;
-              setPhase({ status: "complete", result });
-              setSelectedRound(1);
+              flushSync(() => { setPhase({ status: "complete", result }); setSelectedRound(1); });
               if (result.finalScore >= 7) fireConfetti();
               toast({ title: `Done! Score: ${result.finalScore}/10`, description: `${result.rounds.length} rounds of optimization complete.` });
               break;
             }
             case "error":
-              setPhase({ status: "error", message: event.message as string });
+              flushSync(() => setPhase({ status: "error", message: event.message as string }));
               toast({ title: "Failed", description: event.message as string, variant: "destructive" });
               break;
           }

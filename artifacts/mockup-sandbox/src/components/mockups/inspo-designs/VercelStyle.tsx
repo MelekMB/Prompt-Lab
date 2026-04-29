@@ -1,102 +1,74 @@
 export function VercelStyle() {
   return (
-    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#000", minHeight: "100vh", color: "#fff" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-      `}</style>
+    <div style={{ fontFamily: "'Inter', system-ui, sans-serif", background: "#fff", minHeight: "100vh", color: "#111", position: "relative" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap'); * { box-sizing:border-box; margin:0; padding:0; }`}</style>
 
-      {/* Nav — ultra minimal */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 40px", borderBottom: "1px solid #111" }}>
-        <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.03em" }}>prompt labs</span>
-        <div style={{ display: "flex", gap: 32, fontSize: 13, color: "#777" }}>
-          <span>Leaderboard</span>
-          <span style={{ color: "#fff", background: "#fff", color: "#000", padding: "5px 14px", borderRadius: 5, fontWeight: 500, fontSize: 12 }}>Start →</span>
+      {/* Grid overlay — Vercel signature */}
+      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(#E8E8E8 1px, transparent 1px), linear-gradient(90deg, #E8E8E8 1px, transparent 1px)", backgroundSize: "72px 72px", opacity: 0.4, pointerEvents: "none" }} />
+      {/* Corner markers */}
+      {[[-2,-2],[69,-2],[-2,69],[69,69]].map(([x,y],i) => <div key={i} style={{ position: "absolute", left: x+310, top: y+88, width: 8, height: 8, border: "1px solid #ccc", background: "transparent" }} />)}
+
+      {/* Nav */}
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 32px", position: "relative", zIndex: 10, background: "rgba(255,255,255,0.85)", backdropFilter: "blur(4px)", borderBottom: "1px solid #E8E8E8" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 32 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 0, height: 0, borderLeft: "7px solid transparent", borderRight: "7px solid transparent", borderBottom: "12px solid #111" }} />
+            <span style={{ fontSize: 14, fontWeight: 600, letterSpacing: "-0.02em" }}>prompt labs</span>
+          </div>
+          <div style={{ display: "flex", gap: 24, fontSize: 13, color: "#666" }}>
+            {["Products","Resources","Solutions","Enterprise","Pricing"].map(n => <span key={n} style={{ cursor: "pointer" }}>{n}</span>)}
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button style={{ background: "#fff", border: "1px solid #E0E0E0", borderRadius: 6, padding: "7px 14px", fontSize: 13, color: "#111", cursor: "pointer", fontFamily: "inherit" }}>Log In</button>
+          <button style={{ background: "#111", border: "none", borderRadius: 6, padding: "7px 14px", fontSize: 13, color: "#fff", fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>Sign Up</button>
         </div>
       </nav>
 
-      {/* Main grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", minHeight: "calc(100vh - 53px)" }}>
-
-        {/* Left — headline + form */}
-        <div style={{ padding: "60px 40px", borderRight: "1px solid #111", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-          <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 20, fontWeight: 500 }}>
-            Adversarial prompt optimization
-          </div>
-
-          <h1 style={{ fontSize: 52, fontWeight: 800, letterSpacing: "-0.04em", lineHeight: 1.02, marginBottom: 32 }}>
-            Your prompt,<br />
-            battle-tested<br />
-            <span style={{ color: "#555" }}>by two AIs.</span>
-          </h1>
-
-          <div style={{ borderTop: "1px solid #111", paddingTop: 28, marginBottom: 28 }}>
-            <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 10 }}>Prompt</div>
-            <textarea
-              readOnly
-              placeholder="Drop your rough idea here..."
-              style={{ width: "100%", background: "transparent", border: "none", outline: "none", fontSize: 14, color: "#777", resize: "none", lineHeight: 1.6, height: 80, fontFamily: "inherit" }}
-            />
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <button style={{ background: "#fff", border: "none", borderRadius: 5, padding: "10px 20px", fontSize: 13, fontWeight: 600, color: "#000", cursor: "pointer" }}>
-              Make it better →
-            </button>
-            <div style={{ display: "flex", gap: 4, marginLeft: 8 }}>
-              {[1,2,3,4,5].map(n => (
-                <div key={n} style={{ width: 28, height: 30, border: `1px solid ${n === 3 ? "#fff" : "#222"}`, borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 500, color: n === 3 ? "#fff" : "#444" }}>{n}</div>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginTop: 28, display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {["Write a cold email to a VC", "Job interview prep", "Product launch tweet"].map(e => (
-              <div key={e} style={{ border: "1px solid #1a1a1a", borderRadius: 4, padding: "4px 10px", fontSize: 11, color: "#555", cursor: "pointer" }}>{e}</div>
-            ))}
-          </div>
+      {/* Hero — centered like Vercel */}
+      <div style={{ textAlign: "center", padding: "72px 32px 0", position: "relative", zIndex: 10 }}>
+        <h1 style={{ fontSize: 56, fontWeight: 800, letterSpacing: "-0.045em", lineHeight: 1.04, color: "#111", marginBottom: 20 }}>
+          Your prompt,<br />battle-tested by two AIs.
+        </h1>
+        <p style={{ fontSize: 16, color: "#666", lineHeight: 1.6, maxWidth: 480, margin: "0 auto 32px" }}>
+          Two models fight over your prompt until it scores 9 out of 10. Works for any use case.
+        </p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center", marginBottom: 48 }}>
+          <button style={{ background: "#111", border: "none", borderRadius: 8, padding: "11px 28px", fontSize: 14, color: "#fff", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 0, height: 0, borderLeft: "5px solid transparent", borderRight: "5px solid transparent", borderBottom: "9px solid #fff" }} />
+            Start Optimizing
+          </button>
+          <button style={{ background: "#fff", border: "1.5px solid #E0E0E0", borderRadius: 8, padding: "11px 24px", fontSize: 14, color: "#333", cursor: "pointer", fontFamily: "inherit" }}>See Leaderboard</button>
         </div>
 
-        {/* Right — data display */}
-        <div style={{ padding: "60px 40px", display: "flex", flexDirection: "column", justifyContent: "center" }}>
-
-          {/* Score grid */}
-          <div style={{ fontSize: 11, color: "#555", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 24 }}>Score trace</div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1, background: "#111", border: "1px solid #111", borderRadius: 6, overflow: "hidden", marginBottom: 32 }}>
-            {[
-              ["Original", "2.0", "#555"],
-              ["Round 1", "5.3", "#777"],
-              ["Round 2", "7.1", "#aaa"],
-              ["Final", "9.2", "#fff"],
-            ].map(([label, score, color]) => (
-              <div key={label} style={{ background: "#000", padding: "20px 20px" }}>
-                <div style={{ fontSize: 10, color: "#444", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>{label}</div>
-                <div style={{ fontSize: 32, fontWeight: 800, letterSpacing: "-0.04em", color }}>{score}</div>
-                <div style={{ fontSize: 10, color: "#333", marginTop: 4 }}>out of 10</div>
-              </div>
+        {/* Colorful geometric art — Vercel's signature element */}
+        <div style={{ position: "relative", height: 280, overflow: "hidden", borderRadius: "0 0 16px 16px", background: "#fff" }}>
+          <div style={{ position: "absolute", inset: 0 }}>
+            {/* Concentric lines radiating from center-bottom — like Vercel's triangle */}
+            {Array.from({ length: 18 }).map((_, i) => (
+              <div key={i} style={{
+                position: "absolute",
+                bottom: 0,
+                left: "50%",
+                transform: `translateX(-50%)`,
+                width: `${(i + 1) * 48}px`,
+                height: `${(i + 1) * 48}px`,
+                borderRadius: "50% 50% 0 0",
+                border: `1.5px solid ${i % 3 === 0 ? "rgba(251,146,60,0.5)" : i % 3 === 1 ? "rgba(52,211,153,0.4)" : "rgba(99,102,241,0.3)"}`,
+              }} />
             ))}
-          </div>
-
-          {/* Process */}
-          <div style={{ borderTop: "1px solid #111", paddingTop: 24 }}>
-            {[
-              ["01", "OpenAI rewrites the prompt with structure, role, and constraints"],
-              ["02", "Gemini critiques the result across 10 evaluation dimensions"],
-              ["03", "Repeat until the score can't improve or rounds are exhausted"],
-            ].map(([n, desc]) => (
-              <div key={n} style={{ display: "flex", gap: 16, marginBottom: 16 }}>
-                <span style={{ fontSize: 11, color: "#333", fontWeight: 600, fontVariantNumeric: "tabular-nums", flexShrink: 0, marginTop: 1 }}>{n}</span>
-                <span style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>{desc}</span>
-              </div>
-            ))}
-          </div>
-
-          <div style={{ borderTop: "1px solid #111", paddingTop: 20, display: "flex", justifyContent: "space-between", fontSize: 11, color: "#333" }}>
-            <span>🏆 Leaderboard</span>
-            <span>avg improvement: +4.2 pts</span>
+            {/* Center triangle */}
+            <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "60px solid transparent", borderRight: "60px solid transparent", borderBottom: "100px solid #E0E0E0" }} />
+            <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 0, height: 0, borderLeft: "52px solid transparent", borderRight: "52px solid transparent", borderBottom: "90px solid #C8C8C8" }} />
           </div>
         </div>
+      </div>
+
+      {/* Social proof logos strip */}
+      <div style={{ display: "flex", justifyContent: "center", gap: 48, padding: "24px 32px", borderTop: "1px solid #F0F0F0", position: "relative", zIndex: 10 }}>
+        {["OpenAI", "Gemini", "Anthropic", "Mistral"].map(name => (
+          <span key={name} style={{ fontSize: 13, color: "#AAA", fontWeight: 500 }}>{name}</span>
+        ))}
       </div>
     </div>
   );

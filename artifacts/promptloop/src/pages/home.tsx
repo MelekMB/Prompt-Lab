@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Zap, Twitter, Trophy, User } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Twitter, Trophy, User } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -509,20 +509,36 @@ export function Home() {
     <div className="max-w-5xl mx-auto px-4 md:px-8 pt-8 pb-20 space-y-8">
 
       {/* Hero */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center gap-2 bg-primary/10 border border-primary/20 rounded-full px-4 py-1.5">
-          <Zap className="w-3.5 h-3.5 text-primary" />
-          <span className="text-xs text-primary font-medium">Adversarial AI optimization</span>
-        </div>
+      <div className="text-center space-y-4">
         <h1 className="text-5xl md:text-6xl font-black tracking-tight leading-[1.05]">
-          Your prompts,{" "}
-          <span className="bg-gradient-to-r from-rose-400 to-red-400 bg-clip-text text-transparent">
-            actually good.
+          Your prompt,{" "}
+          <span className="bg-gradient-to-r from-rose-400 to-red-500 bg-clip-text text-transparent">
+            battle-tested.
           </span>
         </h1>
-        <p className="text-muted-foreground text-base max-w-md mx-auto">
-          Drop any rough idea. Two AIs fight over it until it's 10× better.
+        <p className="text-muted-foreground text-base max-w-sm mx-auto">
+          Two AIs argue over your prompt until it scores 9 out of 10.
         </p>
+
+        {/* 3-step strip */}
+        <div className="flex items-start justify-center gap-0 max-w-lg mx-auto pt-2">
+          {[
+            { n: "1", label: "You paste", desc: "Any rough idea or half-baked instruction." },
+            { n: "2", label: "AIs battle", desc: "OpenAI rewrites. Gemini scores. Repeat." },
+            { n: "3", label: "You copy", desc: "The best version, ready to use." },
+          ].map((s, i, arr) => (
+            <div key={s.n} className="flex-1 flex flex-col items-center gap-1.5 text-center px-3 relative">
+              <div className="w-7 h-7 rounded-full bg-primary/15 border border-primary/30 flex items-center justify-center text-primary font-bold text-xs">
+                {s.n}
+              </div>
+              {i < arr.length - 1 && (
+                <div className="absolute top-3.5 left-[calc(50%+18px)] right-0 h-px bg-border/40" />
+              )}
+              <p className="text-xs font-bold text-foreground/80">{s.label}</p>
+              <p className="text-[11px] text-muted-foreground/60 leading-relaxed">{s.desc}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[5fr_7fr] gap-6 items-start">

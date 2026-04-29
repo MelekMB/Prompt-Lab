@@ -511,19 +511,23 @@ export function Home() {
           switch (event.type) {
             case "round_start":
               flushSync(() => setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number }));
+              await new Promise(r => requestAnimationFrame(r));
               break;
             case "chatgpt_done":
               flushSync(() => setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
                 ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev));
+              await new Promise(r => requestAnimationFrame(r));
               break;
             case "round_done": {
               const rd = event.data as RoundResult;
               completedRounds.push(rd);
               flushSync(() => setPhase({ status: "round_done", round: event.round as number, totalRounds: data.rounds, completedRounds: [...completedRounds] }));
+              await new Promise(r => requestAnimationFrame(r));
               break;
             }
             case "synthesizing":
               flushSync(() => setPhase({ status: "synthesizing", totalRounds: data.rounds, completedRounds: [...completedRounds] }));
+              await new Promise(r => requestAnimationFrame(r));
               break;
             case "complete": {
               const result = event.data as ImprovePromptResponse;

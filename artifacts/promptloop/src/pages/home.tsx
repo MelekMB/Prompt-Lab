@@ -346,7 +346,7 @@ export function Home() {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { prompt: "", goal: "", audience: "", tone: "", constraints: "", rounds: 3 },
+    defaultValues: { prompt: "", goal: "", audience: "", tone: "", constraints: "", rounds: 2 },
   });
 
   const watchRounds = form.watch("rounds");
@@ -589,23 +589,42 @@ export function Home() {
                 </div>
 
                 {/* Rounds + Submit row */}
-                <div className="border-t border-border/30 px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-xs text-muted-foreground">Rounds</span>
-                    <div className="flex gap-1">
-                      {[1, 2, 3, 4, 5].map(n => (
-                        <button key={n} type="button"
-                          onClick={() => form.setValue("rounds", n)}
-                          className={cn(
-                            "w-7 h-7 rounded-lg text-xs font-bold transition-all border",
-                            watchRounds === n
-                              ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(192,57,43,0.4)]"
-                              : "bg-secondary/50 text-muted-foreground border-border/30 hover:bg-secondary"
-                          )}
-                        >
-                          {n}
-                        </button>
-                      ))}
+                <div className="border-t border-white/[0.06] px-4 py-3 flex flex-wrap items-center gap-x-3 gap-y-2">
+                  <div className="flex flex-col gap-1 flex-shrink-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">Rounds</span>
+                      <div className="flex gap-1">
+                        {[
+                          { n: 1, time: "~20s" },
+                          { n: 2, time: "~40s" },
+                          { n: 3, time: "~1m" },
+                          { n: 4, time: "~90s" },
+                          { n: 5, time: "~2m" },
+                        ].map(({ n, time }) => (
+                          <div key={n} className="flex flex-col items-center gap-0.5">
+                            <button type="button"
+                              onClick={() => form.setValue("rounds", n)}
+                              className={cn(
+                                "w-7 h-7 rounded-lg text-xs font-bold transition-all border relative",
+                                watchRounds === n
+                                  ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(192,57,43,0.4)]"
+                                  : "bg-white/[0.06] text-muted-foreground border-white/[0.10] hover:bg-white/[0.10]"
+                              )}
+                            >
+                              {n}
+                              {n === 2 && (
+                                <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] text-primary font-bold tracking-tight whitespace-nowrap">best</span>
+                              )}
+                            </button>
+                            <span className={cn(
+                              "text-[9px] font-mono leading-none",
+                              watchRounds === n ? "text-primary/70" : n >= 4 ? "text-orange-400/50" : "text-muted-foreground/40"
+                            )}>
+                              {time}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   <Button type="submit" disabled={isRunning}

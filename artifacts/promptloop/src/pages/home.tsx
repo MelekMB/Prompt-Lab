@@ -548,15 +548,23 @@ export function Home() {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
 
-              <div className="rounded-2xl border border-border/50 bg-card/60 backdrop-blur-sm overflow-hidden">
-                <div className="px-4 pt-4 pb-2">
+              <div className="rounded-2xl border border-white/[0.14] bg-zinc-800/70 backdrop-blur-sm overflow-hidden shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_4px_24px_rgba(0,0,0,0.4)]">
+                {/* Step 1 header */}
+                <div className="px-4 pt-3 pb-1 flex items-center gap-2 border-b border-white/[0.06]">
+                  <div className="w-5 h-5 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center flex-shrink-0">
+                    <span className="text-primary font-bold" style={{ fontSize: 9 }}>1</span>
+                  </div>
+                  <span className="text-xs font-semibold text-foreground/80 tracking-wide">Paste your prompt</span>
+                  <span className="ml-auto text-[10px] text-muted-foreground/50 font-mono">← start here</span>
+                </div>
+
+                <div className="px-4 pt-3 pb-2">
                   <FormField control={form.control} name="prompt" render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="font-mono text-[10px] text-muted-foreground uppercase tracking-widest">Your prompt</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="Drop your rough idea here..."
-                          className="min-h-[130px] font-mono text-sm resize-none bg-transparent border-0 focus-visible:ring-0 px-0 placeholder:text-muted-foreground/40"
+                          placeholder="Drop your rough idea here... e.g. 'write a cold email to a VC'"
+                          className="min-h-[130px] font-mono text-sm resize-none bg-transparent border-0 focus-visible:ring-0 px-0 placeholder:text-muted-foreground/60 text-foreground"
                           {...field}
                         />
                       </FormControl>
@@ -567,12 +575,12 @@ export function Home() {
 
                 {/* Example chips */}
                 <div className="px-4 pb-3">
-                  <p className="text-[10px] text-muted-foreground/60 uppercase tracking-wider mb-2">Try an example</p>
+                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider mb-2">or try an example</p>
                   <div className="flex flex-wrap gap-1.5">
                     {EXAMPLE_PROMPTS.map(ex => (
                       <button key={ex} type="button"
                         onClick={() => form.setValue("prompt", ex)}
-                        className="text-[11px] bg-secondary/50 hover:bg-primary/20 hover:text-primary border border-border/50 hover:border-primary/30 text-muted-foreground px-2.5 py-1 rounded-full transition-all cursor-pointer"
+                        className="text-[11px] bg-white/[0.06] hover:bg-primary/20 hover:text-primary border border-white/[0.10] hover:border-primary/30 text-muted-foreground px-2.5 py-1 rounded-full transition-all cursor-pointer"
                       >
                         {ex}
                       </button>

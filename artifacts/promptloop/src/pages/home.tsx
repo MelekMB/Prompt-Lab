@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Twitter, Trophy, User } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Twitter, Trophy, User, Mic, MicOff } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -484,6 +484,38 @@ export function Home() {
     }
   };
 
+  // Voice dictation
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported] = useState(() =>
+    typeof window !== "undefined" && ("SpeechRecognition" in window || "webkitSpeechRecognition" in window)
+  );
+  const recognitionRef = useRef<any>(null);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+      return;
+    }
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition;
+    const rec = new SR();
+    rec.lang = "en-US";
+    rec.continuous = true;
+    rec.interimResults = false;
+    rec.onresult = (e: any) => {
+      const transcript = Array.from(e.results as any[])
+        .map((r: any) => r[0].transcript)
+        .join(" ");
+      const current = form.getValues("prompt");
+      form.setValue("prompt", current ? `${current} ${transcript}` : transcript, { shouldValidate: true });
+    };
+    rec.onerror = () => setIsListening(false);
+    rec.onend = () => setIsListening(false);
+    recognitionRef.current = rec;
+    rec.start();
+    setIsListening(true);
+  };
+
   const isRunning = phase.status !== "idle" && phase.status !== "complete" && phase.status !== "error";
 
   const getCurrentRound = () => "round" in phase ? phase.round : 1;
@@ -555,7 +587,27 @@ export function Home() {
                     <span className="text-primary font-bold" style={{ fontSize: 9 }}>1</span>
                   </div>
                   <span className="text-xs font-semibold text-foreground/80 tracking-wide">Paste your prompt</span>
-                  <span className="ml-auto text-[10px] text-muted-foreground/50 font-mono">← start here</span>
+                  <div className="ml-auto flex items-center gap-2">
+                    {speechSupported && (
+                      <button
+                        type="button"
+                        onClick={toggleListening}
+                        title={isListening ? "Stop recording" : "Dictate your prompt"}
+                        className={cn(
+                          "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-medium transition-all border",
+                          isListening
+                            ? "bg-primary/20 border-primary/50 text-primary animate-pulse"
+                            : "bg-white/[0.05] border-white/[0.10] text-muted-foreground/60 hover:text-muted-foreground hover:bg-white/[0.08]"
+                        )}
+                      >
+                        {isListening
+                          ? <><MicOff className="w-3 h-3" /> stop</>
+                          : <><Mic className="w-3 h-3" /> dictate</>
+                        }
+                      </button>
+                    )}
+                    {!isListening && <span className="text-[10px] text-muted-foreground/50 font-mono">← start here</span>}
+                  </div>
                 </div>
 
                 <div className="px-4 pt-3 pb-2">

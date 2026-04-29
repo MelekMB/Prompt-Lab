@@ -201,7 +201,7 @@ function AnimatedBeforeAfter() {
         )}
       </div>
 
-      <div className={cn("relative p-4 min-h-[170px]", phase === "transition" && "flex items-center justify-center")}>
+      <div className={cn("relative p-4 h-[260px] overflow-hidden", phase === "transition" && "flex items-center justify-center")}>
         {phase === "transition" ? (
           <div className="flex items-center gap-2">
             <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />

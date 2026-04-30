@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const PROMPT_LABS_URL = "https://promptlabs.replit.app";
+const PROMPT_LABS_URL = "https://promptlabs.app";
 
 function Logo() {
   return (
@@ -435,7 +435,7 @@ export default function AdPage() {
             letterSpacing: "0.05em",
           }}
         >
-          promptlabs.replit.app
+          promptlabs.app
         </p>
         <p
           style={{

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100vw; height: 100vh; overflow: hidden; background: #070709; }
+  .ad {
+    width: 100vw; height: 100vh;
+    background: #070709;
+    display: flex; flex-direction: column; justify-content: space-between;
+    padding: 6vh 7vw;
+    position: relative;
+  }
+  /* Subtle red glow top-left */
+  .ad::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 55%; height: 50%;
+    background: radial-gradient(ellipse at top left, rgba(192,57,43,0.18) 0%, transparent 65%);
+    pointer-events: none;
+  }
+  .logo {
+    display: flex; align-items: center; gap: 1.2vw;
+  }
+  .logo-icon svg { height: 5.5vh; width: auto; }
+  .logo-wordmark {
+    font-family: 'Space Mono', monospace;
+    font-size: 2.2vh; font-weight: 700;
+    color: #fff; letter-spacing: -0.02em;
+    opacity: 0.9;
+  }
+  .middle {
+    display: flex; flex-direction: column; gap: 2.5vh;
+  }
+  .eyebrow {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.6vh; font-weight: 400;
+    color: #c0392b; letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 7.5vw; font-weight: 800;
+    line-height: 1.05; color: #fff;
+    letter-spacing: -0.03em;
+  }
+  .headline em {
+    font-style: normal;
+    color: #e05252;
+  }
+  .footer {
+    font-family: 'Space Mono', monospace;
+    font-size: 1.5vh; color: rgba(255,255,255,0.3);
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+<div class="ad">
+  <div class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="28" height="28" rx="7" fill="url(#g1)"/>
+        <path d="M7 10.5L12.5 14L7 17.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M14.5 17.5H21" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <defs>
+          <linearGradient id="g1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#c0392b"/>
+            <stop offset="100%" stop-color="#e05252"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <span class="logo-wordmark">prompt labs</span>
+  </div>
+
+  <div class="middle">
+    <div class="eyebrow">The problem with AI prompts</div>
+    <div class="headline">
+      Your prompts<br/>
+      deserve<br/>
+      <em>better.</em>
+    </div>
+  </div>
+
+  <div class="footer">promptlabs.replit.app</div>
+</div>
+</body>
+</html>

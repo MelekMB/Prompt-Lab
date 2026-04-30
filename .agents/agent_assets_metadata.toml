@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "slnvNiwFEW2pyexIDazji"
+uri = "file://screenshots/prompt-labs-ad-linkedin.jpg"
+type = "image"
+title = "Prompt Labs — LinkedIn Image (1200×628)"

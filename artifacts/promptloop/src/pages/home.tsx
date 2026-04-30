@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Twitter, Trophy, User, Mic, MicOff } from "lucide-react";
+import { Sparkles, Copy, Check, Loader2, ArrowRight, RotateCcw, ChevronDown, Twitter, Mic, MicOff } from "lucide-react";
 import { useLocation } from "wouter";
 import confetti from "canvas-confetti";
 
@@ -15,20 +15,10 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useToast } from "@/hooks/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { AVATAR_COLORS, LEADERBOARD_SUBJECTS, type LeaderboardSubject } from "@workspace/api-zod";
-
-const IDENTITY_KEY = "prompt_labs_identity";
-interface Identity { handle: string; avatarColor: string; }
-function getIdentity(): Identity | null {
-  try { const r = localStorage.getItem(IDENTITY_KEY); return r ? JSON.parse(r) : null; } catch { return null; }
-}
-function saveIdentity(id: Identity) { localStorage.setItem(IDENTITY_KEY, JSON.stringify(id)); }
 
 const EXAMPLE_PROMPTS = [
   "Write a cold email to a VC",
@@ -38,7 +28,7 @@ const EXAMPLE_PROMPTS = [
   "Explain this concept simply",
 ];
 
-const DEMO_PAIRS: { before: string; after: string; scoreFrom: number; scoreTo: number }[] = [
+const DEMO_PAIRS: { before: string; after: string }[] = [
   {
     before: `write me a cold email to a vc`,
     after: `Role: Startup fundraising advisor & copywriter.
@@ -57,8 +47,6 @@ Output:
 Subject: [compelling subject line]
 ---
 [email body]`,
-    scoreFrom: 2,
-    scoreTo: 9,
   },
   {
     before: `help me prep for a job interview`,
@@ -75,8 +63,6 @@ Requirements:
 - Estimated prep time per section
 
 Output: A day-by-day prep schedule for 5 days`,
-    scoreFrom: 2,
-    scoreTo: 8,
   },
   {
     before: `write a tweet about my product launch`,
@@ -94,8 +80,6 @@ Requirements:
 - Conversational tone — no corporate speak
 
 Output: 3 tweet variants (short / medium / thread-opener)`,
-    scoreFrom: 3,
-    scoreTo: 9,
   },
   {
     before: `explain how transformers work`,
@@ -113,8 +97,6 @@ Requirements:
 - Avoid jargon without definition
 
 Output: Explanation + one simple diagram description`,
-    scoreFrom: 2,
-    scoreTo: 8,
   },
 ];
 
@@ -128,7 +110,6 @@ function AnimatedBeforeAfter() {
 
   const currentPair = DEMO_PAIRS[pairIndex];
 
-  // Auto-scroll to bottom as text types in
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -156,29 +137,24 @@ function AnimatedBeforeAfter() {
         const pair = DEMO_PAIRS[idx % DEMO_PAIRS.length];
         setPairIndex(idx % DEMO_PAIRS.length);
 
-        // 1. Type the before prompt
         setPhase("typing-before");
         setDisplayed("");
         await typeText(pair.before, 55);
         if (cancelled) return;
 
-        // 2. Pause so user can read it
         setPhase("pause-before");
         await sleep(1800);
         if (cancelled) return;
 
-        // 3. Transition spinner
         setPhase("transition");
         setDisplayed("");
         await sleep(1600);
         if (cancelled) return;
 
-        // 4. Stream out the optimized result
         setPhase("typing-after");
         await typeText(pair.after, 10);
         if (cancelled) return;
 
-        // 5. Hold the final result then move to next pair
         setPhase("pause-after");
         await sleep(3000);
         if (cancelled) return;
@@ -197,11 +173,9 @@ function AnimatedBeforeAfter() {
 
   const isTyping = phase === "typing-before" || phase === "typing-after";
   const isAfter = phase === "typing-after" || phase === "pause-after";
-  const isDone = phase === "pause-after";
 
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#0a0a0f] overflow-hidden">
-      {/* Header — scores always visible here, never inside scroll area */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/[0.05]">
         <div className="flex items-center gap-2">
           <div className={cn(
@@ -212,37 +186,14 @@ function AnimatedBeforeAfter() {
             {isAfter ? "optimized_prompt.md" : phase === "transition" ? "optimizing..." : "raw_prompt.txt"}
           </span>
         </div>
-
-        {/* Score always in header — transitions as phase changes */}
-        <div className="flex items-center gap-2">
-          {!isAfter && phase !== "transition" && (
-            <span className="text-[10px] text-muted-foreground font-mono">
-              score: {currentPair.scoreFrom}/10
-            </span>
-          )}
-          {isAfter && !isDone && (
-            <span className="text-[10px] text-muted-foreground font-mono">
-              {currentPair.scoreFrom}/10 →
-            </span>
-          )}
-          {isDone && (
-            <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded-full font-mono animate-in fade-in duration-300">
-              {currentPair.scoreFrom}/10 → {currentPair.scoreTo}/10
-            </span>
-          )}
-          {isAfter && (
-            <div className={cn(
-              "flex items-center gap-1 bg-green-500/10 border border-green-500/20 rounded-full px-2 py-0.5 transition-opacity duration-300",
-              isDone ? "opacity-100" : "opacity-60"
-            )}>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-              <span className="text-[10px] text-green-400 font-mono font-bold">{currentPair.scoreTo}/10</span>
-            </div>
-          )}
-        </div>
+        {isAfter && (
+          <div className="flex items-center gap-1 bg-green-500/10 border border-green-500/20 rounded-full px-2 py-0.5">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+            <span className="text-[10px] text-green-400 font-mono font-bold">optimized</span>
+          </div>
+        )}
       </div>
 
-      {/* Scroll area — no absolute overlays, just text + cursor */}
       <div ref={scrollRef} className={cn("p-4 h-[260px] overflow-y-hidden", phase === "transition" && "flex items-center justify-center")}>
         {phase === "transition" ? (
           <div className="flex items-center gap-2">
@@ -275,39 +226,17 @@ interface RoundResult {
   round: number;
   chatgptPrompt: string;
   geminiCritique: string;
-  geminiScore: number;
   improvementSummary: string;
 }
 
 type Phase =
   | { status: "idle" }
-  | { status: "scoring_original" }
   | { status: "round_start"; round: number; totalRounds: number }
   | { status: "chatgpt_done"; round: number; totalRounds: number }
   | { status: "round_done"; round: number; totalRounds: number; completedRounds: RoundResult[] }
   | { status: "synthesizing"; totalRounds: number; completedRounds: RoundResult[] }
   | { status: "complete"; result: ImprovePromptResponse }
   | { status: "error"; message: string };
-
-function ScoreRing({ score }: { score: number }) {
-  const r = 30;
-  const circ = 2 * Math.PI * r;
-  const dash = (score / 10) * circ;
-  const color = score >= 8 ? "#34d399" : score >= 6 ? "#fbbf24" : "#f87171";
-  return (
-    <div className="relative flex items-center justify-center w-20 h-20">
-      <svg width="72" height="72" className="-rotate-90">
-        <circle cx="36" cy="36" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
-        <circle cx="36" cy="36" r={r} fill="none" stroke={color} strokeWidth="5"
-          strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-          style={{ transition: "stroke-dasharray 1s ease" }} />
-      </svg>
-      <div className="absolute text-center">
-        <div className="text-sm font-black text-white">{score}/10</div>
-      </div>
-    </div>
-  );
-}
 
 function fireConfetti() {
   const end = Date.now() + 1200;
@@ -325,25 +254,8 @@ export function Home() {
   const [copied, setCopied] = useState<string | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [phase, setPhase] = useState<Phase>({ status: "idle" });
-
-  // Round viewer state
   const [selectedRound, setSelectedRound] = useState<number | "final">(1);
-
-  // Leaderboard state
-  const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [lbStatus, setLbStatus] = useState<"idle" | "submitting" | "done">("idle");
   const [savedSessionId, setSavedSessionId] = useState<number | null>(null);
-  const [selectedSubject, setSelectedSubject] = useState<LeaderboardSubject>("Marketing");
-  const [identity, setIdentityState] = useState<Identity | null>(null);
-  const [newHandle, setNewHandle] = useState("");
-  const [selectedColor, setSelectedColor] = useState<string>(AVATAR_COLORS[0]);
-
-  useEffect(() => {
-    const stored = getIdentity();
-    if (stored) { setIdentityState(stored); setNewHandle(stored.handle); setSelectedColor(stored.avatarColor); }
-  }, []);
-
-  const [initialScoreValue, setInitialScoreValue] = useState<number | null>(null);
 
   const createSessionMutation = useCreateSession();
 
@@ -362,15 +274,14 @@ export function Home() {
   };
 
   const shareOnX = (result: ImprovePromptResponse) => {
-    const score = result.finalScore;
     const rounds = result.rounds.length;
-    const tweet = `Just turned a rough prompt into a ${score}/10 in ${rounds} rounds of AI optimization 🚀\n\nThis thing actually works → promptloop.replit.app\n\n#AI #PromptEngineering`;
+    const tweet = `Just optimized my AI prompt in ${rounds} rounds with Prompt Labs 🚀\n\nRough idea → structured, precise, ready to use.\n\ntry it → promptloop.replit.app\n\n#AI #PromptEngineering`;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweet)}`, "_blank");
   };
 
   const onSubmit = async (data: FormValues) => {
-    setPhase({ status: "scoring_original" });
-    setInitialScoreValue(null);
+    setPhase({ status: "round_start", round: 1, totalRounds: data.rounds ?? watchRounds });
+    setSavedSessionId(null);
     const completedRounds: RoundResult[] = [];
 
     try {
@@ -401,9 +312,6 @@ export function Home() {
           try { event = JSON.parse(raw); } catch { continue; }
 
           switch (event.type) {
-            case "initial_scored":
-              setInitialScoreValue(event.initialScore as number);
-              break;
             case "round_start":
               setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number });
               break;
@@ -424,8 +332,8 @@ export function Home() {
               const result = event.data as ImprovePromptResponse;
               setPhase({ status: "complete", result });
               setSelectedRound(1);
-              if (result.finalScore >= 7) fireConfetti();
-              toast({ title: `Done! Score: ${result.finalScore}/10`, description: `${result.rounds.length} rounds of optimization complete.` });
+              fireConfetti();
+              toast({ title: "Done!", description: `${result.rounds.length} rounds of optimization complete.` });
               break;
             }
             case "error":
@@ -449,7 +357,18 @@ export function Home() {
       const { result } = phase;
       const formData = form.getValues();
       createSessionMutation.mutate(
-        { data: { originalPrompt: result.originalPrompt, goal: formData.goal, audience: formData.audience, tone: formData.tone, constraints: formData.constraints, finalPrompt: result.finalPrompt, finalScore: result.finalScore, initialScore: result.initialScore ?? undefined, transformationScore: result.transformationScore ?? undefined, rounds: result.rounds } },
+        {
+          data: {
+            originalPrompt: result.originalPrompt,
+            goal: formData.goal,
+            audience: formData.audience,
+            tone: formData.tone,
+            constraints: formData.constraints,
+            finalPrompt: result.finalPrompt,
+            finalScore: 0,
+            rounds: result.rounds,
+          },
+        },
         {
           onSuccess: (session) => { setSavedSessionId(session.id); resolve(session.id); },
           onError: (e) => reject(e),
@@ -462,33 +381,6 @@ export function Home() {
     saveSession()
       .then((id) => { toast({ title: "Saved!", description: "View it in History." }); setLocation(`/session/${id}`); })
       .catch(() => toast({ title: "Save failed", variant: "destructive" }));
-  };
-
-  const handleSubmitLeaderboard = async () => {
-    const handle = newHandle.trim();
-    if (!handle || handle.length < 2) { toast({ title: "Enter a handle (min 2 chars)", variant: "destructive" }); return; }
-    setLbStatus("submitting");
-    try {
-      const sessionId = await saveSession();
-      const newIdentity: Identity = { handle, avatarColor: selectedColor };
-      saveIdentity(newIdentity);
-      setIdentityState(newIdentity);
-      const res = await fetch("/api/leaderboard", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, handle, avatarColor: selectedColor, subject: selectedSubject }),
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as any).error ?? "Failed to submit");
-      }
-      setLbStatus("done");
-      fireConfetti();
-      toast({ title: "🏆 You're on the leaderboard!", description: `Rank submitted as ${handle}` });
-    } catch {
-      setLbStatus("idle");
-      toast({ title: "Submission failed", variant: "destructive" });
-    }
   };
 
   // Voice dictation
@@ -522,7 +414,6 @@ export function Home() {
   };
 
   const isRunning = phase.status !== "idle" && phase.status !== "complete" && phase.status !== "error";
-  const isScoringOriginal = phase.status === "scoring_original";
 
   const getCurrentRound = () => "round" in phase ? phase.round : 1;
   const getTotalRounds = () => "totalRounds" in phase ? phase.totalRounds : watchRounds;
@@ -530,9 +421,8 @@ export function Home() {
 
   const getStatusLabel = () => {
     switch (phase.status) {
-      case "scoring_original": return "Scoring your original prompt...";
-      case "round_start": return "AI rewriting prompt...";
-      case "chatgpt_done": return "Evaluating response quality...";
+      case "round_start": return "Rewriting prompt...";
+      case "chatgpt_done": return "Getting expert critique...";
       case "round_done": return `Round ${phase.round} complete ✓`;
       case "synthesizing": return "Synthesizing final prompt...";
       default: return "Processing...";
@@ -540,8 +430,7 @@ export function Home() {
   };
 
   const progressPct = isRunning
-    ? isScoringOriginal ? 5
-    : phase.status === "synthesizing" ? 95
+    ? phase.status === "synthesizing" ? 95
     : ((getCurrentRound() - (phase.status === "round_done" ? 0 : 0.5)) / getTotalRounds()) * 90
     : 0;
 
@@ -557,14 +446,14 @@ export function Home() {
           </span>
         </h1>
         <p className="text-muted-foreground text-base max-w-sm mx-auto">
-          Two AIs argue over your prompt until it scores 9 out of 10.
+          Two AIs iterate over your prompt until it's the best it can be.
         </p>
 
         {/* 3-step strip */}
         <div className="flex items-start justify-center gap-0 max-w-lg mx-auto pt-2">
           {[
             { n: "1", label: "You paste", desc: "Any rough idea or half-baked instruction." },
-            { n: "2", label: "AIs battle", desc: "OpenAI rewrites. Gemini scores. Repeat." },
+            { n: "2", label: "AIs battle", desc: "OpenAI rewrites. Gemini critiques. Repeat." },
             { n: "3", label: "You copy", desc: "The best version, ready to use." },
           ].map((s, i, arr) => (
             <div key={s.n} className="flex-1 flex flex-col items-center gap-1.5 text-center px-3 relative">
@@ -748,24 +637,12 @@ export function Home() {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">
-                    {isScoringOriginal ? "Analyzing Your Prompt" : phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
+                    {phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1 font-mono">{getStatusLabel()}</p>
                 </div>
                 <div className="w-full max-w-xs space-y-1.5 text-left">
-                  {/* Baseline scoring step */}
-                  <div className="flex items-center gap-2.5 text-xs font-mono">
-                    <div className={cn("w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
-                      !isScoringOriginal ? "bg-primary text-primary-foreground" :
-                      "bg-primary/20 border border-primary text-primary animate-pulse")}>
-                      {!isScoringOriginal ? <Check className="w-3 h-3" /> : "S"}
-                    </div>
-                    <span className={!isScoringOriginal ? "text-foreground" : "text-primary"}>
-                      Baseline score
-                      {initialScoreValue !== null && <span className="ml-2 text-muted-foreground">— {initialScoreValue}/10</span>}
-                    </span>
-                  </div>
-                  {!isScoringOriginal && Array.from({ length: getTotalRounds() }).map((_, i) => {
+                  {Array.from({ length: getTotalRounds() }).map((_, i) => {
                     const done = getCompletedRounds().find(r => r.round === i + 1);
                     const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
                     return (
@@ -778,7 +655,6 @@ export function Home() {
                         </div>
                         <span className={done ? "text-foreground" : active ? "text-primary" : "text-muted-foreground"}>
                           Iteration {i + 1}
-                          {done && <span className="ml-2 text-muted-foreground">— {done.geminiScore}/10</span>}
                         </span>
                       </div>
                     );
@@ -816,42 +692,13 @@ export function Home() {
                       <Sparkles className="w-4 h-4 text-primary" />
                       <span className="font-mono font-bold text-primary text-sm">OPTIMIZED PROMPT</span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      {(phase.result.roundPenalty ?? 0) > 0 && (
-                        <div className="text-right">
-                          <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
-                            <span className="text-gray-400">{phase.result.rawScore}/10</span>
-                            <span className="text-red-400/70">−{phase.result.roundPenalty}</span>
-                          </div>
-                          <div className="text-[9px] text-muted-foreground/60 font-mono">{phase.result.rounds.length}-round penalty</div>
-                        </div>
-                      )}
-                      <ScoreRing score={phase.result.finalScore} />
+                    <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5 bg-green-500/10 border border-green-500/20 rounded-full px-2.5 py-1">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                        <span className="text-[11px] text-green-400 font-mono font-bold">{phase.result.rounds.length} rounds complete</span>
+                      </div>
                     </div>
                   </div>
-                  {/* Transformation score strip */}
-                  {phase.result.initialScore != null && phase.result.transformationScore != null && (
-                    <div className="border-b border-primary/10 px-4 py-2 flex items-center gap-3 bg-gradient-to-r from-violet-500/5 to-indigo-500/5">
-                      <div className="flex items-center gap-2 text-xs font-mono">
-                        <span className="text-muted-foreground/60">before</span>
-                        <span className="text-red-400/80 font-bold">{phase.result.initialScore.toFixed(1)}/10</span>
-                        <span className="text-muted-foreground/40">→</span>
-                        <span className="text-muted-foreground/60">after</span>
-                        <span className="text-green-400/80 font-bold">{phase.result.finalScore.toFixed(1)}/10</span>
-                      </div>
-                      <div className="ml-auto flex items-center gap-1.5">
-                        <span className="text-[10px] text-muted-foreground/50 font-mono">transformation</span>
-                        <span className={cn(
-                          "font-mono font-black text-xs px-2 py-0.5 rounded-full border",
-                          phase.result.transformationScore >= 70 ? "text-green-400 bg-green-400/10 border-green-400/30" :
-                          phase.result.transformationScore >= 40 ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" :
-                          "text-orange-400 bg-orange-400/10 border-orange-400/30"
-                        )}>
-                          {phase.result.transformationScore.toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  )}
                   <CardContent className="p-0">
                     <ScrollArea className="h-[260px] w-full bg-[#0a0a0f]">
                       <pre className="p-4 text-sm font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
@@ -872,23 +719,6 @@ export function Home() {
                         <Twitter className="w-3 h-3" />
                         Share on X
                       </Button>
-                      {lbStatus === "done" ? (
-                        <Button size="sm" disabled className="h-8 text-xs gap-1.5 bg-amber-500/20 text-amber-400 border-amber-500/30 border">
-                          <Trophy className="w-3 h-3" />
-                          On Leaderboard!
-                        </Button>
-                      ) : phase.result.finalScore < 7 ? (
-                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground/50 border border-border/20 rounded-lg px-2.5 h-8" title="Reach a final score of 7.0+ to qualify">
-                          <Trophy className="w-3 h-3" />
-                          Need 7.0+ to rank
-                        </div>
-                      ) : (
-                        <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
-                          onClick={() => { setLbStatus("idle"); setShowLeaderboard(true); }}>
-                          <Trophy className="w-3 h-3" />
-                          Leaderboard
-                        </Button>
-                      )}
                     </div>
                   </CardFooter>
                 </Card>
@@ -904,9 +734,6 @@ export function Home() {
                   <div className="flex gap-1.5 flex-wrap">
                     {phase.result.rounds.map((round) => {
                       const active = selectedRound === round.round;
-                      const scoreColor = round.geminiScore >= 8 ? "text-green-400 border-green-400/40 bg-green-400/10" :
-                                        round.geminiScore >= 6 ? "text-yellow-400 border-yellow-400/40 bg-yellow-400/10" :
-                                        "text-red-400 border-red-400/40 bg-red-400/10";
                       return (
                         <button key={round.round} type="button"
                           onClick={() => setSelectedRound(round.round)}
@@ -917,9 +744,6 @@ export function Home() {
                               : "bg-secondary/30 border-border/30 text-muted-foreground hover:text-foreground hover:border-border"
                           )}>
                           Round {round.round}
-                          <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border font-bold", active ? "bg-primary/20 border-primary/30 text-primary" : scoreColor)}>
-                            {round.geminiScore}/10
-                          </span>
                         </button>
                       );
                     })}
@@ -933,12 +757,6 @@ export function Home() {
                       )}>
                       <Sparkles className="w-3 h-3" />
                       Final
-                      <span className={cn("text-[10px] px-1.5 py-0.5 rounded-full border font-bold",
-                        selectedRound === "final"
-                          ? "bg-primary/20 border-primary/30 text-primary"
-                          : "text-green-400 border-green-400/40 bg-green-400/10")}>
-                        {phase.result.finalScore}/10
-                      </span>
                     </button>
                   </div>
 
@@ -964,6 +782,12 @@ export function Home() {
                             {promptText}
                           </pre>
                         </ScrollArea>
+                        {round && (
+                          <div className="px-4 py-3 border-t border-border/20 bg-secondary/5">
+                            <p className="text-[10px] font-mono text-muted-foreground/50 uppercase tracking-wider mb-1">Gemini critique</p>
+                            <p className="text-xs text-muted-foreground/70 leading-relaxed whitespace-pre-wrap">{round.geminiCritique}</p>
+                          </div>
+                        )}
                       </div>
                     );
                   })()}
@@ -972,129 +796,18 @@ export function Home() {
             )}
           </AnimatePresence>
 
-          {/* Idle: animated demo + stats */}
+          {/* Idle: animated demo */}
           {phase.status === "idle" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-widest">Live example</p>
               </div>
-              <div className="relative">
-                <AnimatedBeforeAfter />
-              </div>
-              <div className="grid grid-cols-3 gap-3 text-center">
-                {[
-                  { label: "Prompts optimized", value: "12,400+" },
-                  { label: "Avg score boost", value: "+4.8pts" },
-                  { label: "Rounds avg", value: "3.2" },
-                ].map(stat => (
-                  <div key={stat.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-3">
-                    <p className="text-lg font-bold bg-gradient-to-r from-rose-400 to-red-400 bg-clip-text text-transparent">{stat.value}</p>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
+              <AnimatedBeforeAfter />
             </div>
           )}
+
         </div>
       </div>
-
-      {/* Leaderboard submit modal */}
-      <Dialog open={showLeaderboard} onOpenChange={(o) => { if (!o) setShowLeaderboard(false); }}>
-        <DialogContent className="max-w-md bg-[#0e0e14] border-white/10">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 font-mono">
-              <Trophy className="w-5 h-5 text-amber-400" />
-              Submit to Leaderboard
-            </DialogTitle>
-          </DialogHeader>
-
-          {lbStatus === "done" ? (
-            <div className="py-8 text-center space-y-3">
-              <div className="text-5xl">🏆</div>
-              <h3 className="font-bold text-lg">You're on the board!</h3>
-              <p className="text-sm text-muted-foreground">Your prompt is competing globally as <strong className="text-foreground font-mono">{identity?.handle}</strong>.</p>
-              <Button className="mt-4 w-full" variant="outline" onClick={() => { setShowLeaderboard(false); setLocation("/leaderboard"); }}>
-                View Leaderboard
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-5">
-              <div className="space-y-3">
-                <label className="text-xs font-mono text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <User className="w-3.5 h-3.5" />Your handle
-                </label>
-                <Input
-                  placeholder="e.g. promptwizard42"
-                  value={newHandle}
-                  onChange={e => setNewHandle(e.target.value)}
-                  maxLength={30}
-                  className="font-mono bg-black/30 border-white/10 focus:border-primary/50"
-                />
-                <div className="space-y-1.5">
-                  <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Avatar colour</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {AVATAR_COLORS.map(c => (
-                      <button key={c} type="button" onClick={() => setSelectedColor(c)}
-                        className={cn("w-8 h-8 rounded-full border-2 transition-transform hover:scale-110", selectedColor === c ? "border-white scale-110" : "border-transparent")}
-                        style={{ backgroundColor: c }} />
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">Category</p>
-                <div className="flex flex-wrap gap-1.5">
-                  {LEADERBOARD_SUBJECTS.map(s => (
-                    <button key={s} type="button" onClick={() => setSelectedSubject(s)}
-                      className={cn("text-xs px-3 py-1 rounded-full border font-mono transition-all",
-                        selectedSubject === s ? "bg-primary/20 border-primary/40 text-primary" : "bg-secondary/30 border-border/30 text-muted-foreground hover:text-foreground"
-                      )}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {newHandle.trim().length >= 2 && (
-                <div className="rounded-xl border border-white/10 p-3 flex items-center gap-3 bg-white/[0.03]">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center font-black font-mono text-sm border-2 flex-shrink-0"
-                    style={{ backgroundColor: `${selectedColor}22`, borderColor: `${selectedColor}55`, color: selectedColor }}>
-                    {newHandle.trim().charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-bold text-sm font-mono">{newHandle.trim()}</p>
-                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                      <span className="text-[10px] text-muted-foreground">{selectedSubject}</span>
-                      {phase.status === "complete" && phase.result.initialScore != null && phase.result.transformationScore != null && (
-                        <>
-                          <span className="text-[10px] font-mono text-muted-foreground/50">
-                            {phase.result.initialScore.toFixed(1)} → {phase.result.finalScore.toFixed(1)}/10
-                          </span>
-                          <span className={cn(
-                            "text-[10px] font-mono font-bold px-1.5 py-px rounded-full border",
-                            phase.result.transformationScore >= 70 ? "text-green-400 bg-green-400/10 border-green-400/30" :
-                            phase.result.transformationScore >= 40 ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" :
-                            "text-orange-400 bg-orange-400/10 border-orange-400/30"
-                          )}>
-                            {phase.result.transformationScore.toFixed(1)}%
-                          </span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              <Button onClick={handleSubmitLeaderboard}
-                disabled={lbStatus === "submitting" || newHandle.trim().length < 2}
-                className="w-full bg-gradient-to-r from-amber-600 to-orange-500 hover:from-amber-500 hover:to-orange-400 text-white font-bold border-0">
-                {lbStatus === "submitting" ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Submitting...</> : <><Trophy className="w-4 h-4 mr-2" />Claim your rank</>}
-              </Button>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

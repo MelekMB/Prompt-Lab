@@ -105,9 +105,9 @@ router.post("/sessions", async (req, res): Promise<void> => {
         tone: sessionData.tone ?? null,
         constraints: sessionData.constraints ?? null,
         finalPrompt: sessionData.finalPrompt,
-        finalScore: sessionData.finalScore,
-        initialScore: sessionData.initialScore ?? null,
-        transformationScore: sessionData.transformationScore ?? null,
+        finalScore: sessionData.finalScore ?? 0,
+        initialScore: null,
+        transformationScore: null,
         roundCount: rounds.length,
       })
       .returning();
@@ -119,7 +119,7 @@ router.post("/sessions", async (req, res): Promise<void> => {
           round: r.round,
           chatgptPrompt: r.chatgptPrompt,
           geminiCritique: r.geminiCritique,
-          geminiScore: r.geminiScore,
+          geminiScore: 0,
           improvementSummary: r.improvementSummary,
         }))
       );

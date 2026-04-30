@@ -26,7 +26,6 @@ export interface PromptRound {
   round: number;
   chatgptPrompt: string;
   geminiCritique: string;
-  geminiScore: number;
   improvementSummary: string;
 }
 
@@ -34,11 +33,6 @@ export interface ImprovePromptResponse {
   originalPrompt: string;
   rounds: PromptRound[];
   finalPrompt: string;
-  finalScore: number;
-  rawScore?: number;
-  roundPenalty?: number;
-  initialScore?: number | null;
-  transformationScore?: number | null;
 }
 
 export interface CreateSessionBody {
@@ -52,9 +46,7 @@ export interface CreateSessionBody {
   /** @nullable */
   constraints?: string | null;
   finalPrompt: string;
-  finalScore: number;
-  initialScore?: number | null;
-  transformationScore?: number | null;
+  finalScore?: number;
   rounds: PromptRound[];
 }
 
@@ -89,7 +81,6 @@ export interface StoredRound {
   round: number;
   chatgptPrompt: string;
   geminiCritique: string;
-  geminiScore: number;
   improvementSummary: string;
 }
 

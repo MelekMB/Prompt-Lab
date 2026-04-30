@@ -125,8 +125,8 @@ export function SessionView() {
           <Card className="bg-card/50 border-border/50">
              <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Final Quality Score</p>
-                  <p className="text-3xl font-bold font-mono text-primary">{session.finalScore}<span className="text-lg text-muted-foreground">/10</span></p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">Rounds Completed</p>
+                  <p className="text-3xl font-bold font-mono text-primary">{session.roundCount}</p>
                 </div>
                 <div className="h-10 w-10 rounded-full bg-primary/20 flex items-center justify-center">
                   <Sparkles className="h-5 w-5 text-primary" />
@@ -175,7 +175,7 @@ export function SessionView() {
                       <Cpu className="h-4 w-4 text-muted-foreground" />
                       <span className="font-mono text-xs font-bold uppercase">Iteration {round.round}</span>
                     </div>
-                    <Badge variant="outline" className="font-mono bg-background">Score: {round.geminiScore}</Badge>
+                    <Badge variant="outline" className="font-mono bg-background">Iteration {idx + 1}</Badge>
                   </div>
                   <CardContent className="p-0 flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x divide-border/40">
                     <div className="flex-1 p-4 bg-background/50">

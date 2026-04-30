@@ -36,16 +36,10 @@ export const ImprovePromptResponse = zod.object({
       round: zod.number(),
       chatgptPrompt: zod.string(),
       geminiCritique: zod.string(),
-      geminiScore: zod.number(),
       improvementSummary: zod.string(),
     }),
   ),
   finalPrompt: zod.string(),
-  finalScore: zod.number(),
-  rawScore: zod.number().optional(),
-  roundPenalty: zod.number().optional(),
-  initialScore: zod.number().nullable().optional(),
-  transformationScore: zod.number().nullable().optional(),
 });
 
 /**
@@ -70,15 +64,12 @@ export const CreateSessionBody = zod.object({
   tone: zod.string().nullish(),
   constraints: zod.string().nullish(),
   finalPrompt: zod.string(),
-  finalScore: zod.number(),
-  initialScore: zod.number().nullable().optional(),
-  transformationScore: zod.number().nullable().optional(),
+  finalScore: zod.number().optional().default(0),
   rounds: zod.array(
     zod.object({
       round: zod.number(),
       chatgptPrompt: zod.string(),
       geminiCritique: zod.string(),
-      geminiScore: zod.number(),
       improvementSummary: zod.string(),
     }),
   ),
@@ -109,7 +100,6 @@ export const GetSessionResponse = zod.object({
       round: zod.number(),
       chatgptPrompt: zod.string(),
       geminiCritique: zod.string(),
-      geminiScore: zod.number(),
       improvementSummary: zod.string(),
     }),
   ),

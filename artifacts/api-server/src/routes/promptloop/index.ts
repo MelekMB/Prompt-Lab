@@ -106,6 +106,8 @@ router.post("/sessions", async (req, res): Promise<void> => {
         constraints: sessionData.constraints ?? null,
         finalPrompt: sessionData.finalPrompt,
         finalScore: sessionData.finalScore,
+        initialScore: sessionData.initialScore ?? null,
+        transformationScore: sessionData.transformationScore ?? null,
         roundCount: rounds.length,
       })
       .returning();
@@ -194,7 +196,7 @@ router.get("/leaderboard", async (req, res): Promise<void> => {
     const entries = await db
       .select()
       .from(leaderboardEntriesTable)
-      .orderBy(desc(leaderboardEntriesTable.score))
+      .orderBy(desc(leaderboardEntriesTable.transformationScore), desc(leaderboardEntriesTable.score))
       .limit(100);
 
     res.json(
@@ -205,6 +207,8 @@ router.get("/leaderboard", async (req, res): Promise<void> => {
         avatarColor: e.avatarColor,
         subject: e.subject,
         score: e.score,
+        initialScore: e.initialScore,
+        transformationScore: e.transformationScore,
         originalPromptPreview: e.originalPromptPreview,
         finalPromptPreview: e.finalPromptPreview,
         createdAt: e.createdAt,
@@ -236,6 +240,11 @@ router.post("/leaderboard", async (req, res): Promise<void> => {
       return;
     }
 
+    if (session.finalScore < 7) {
+      res.status(422).json({ error: "Final score must be at least 7.0 to qualify for the leaderboard." });
+      return;
+    }
+
     const [entry] = await db
       .insert(leaderboardEntriesTable)
       .values({
@@ -244,6 +253,8 @@ router.post("/leaderboard", async (req, res): Promise<void> => {
         avatarColor,
         subject,
         score: session.finalScore,
+        initialScore: session.initialScore ?? null,
+        transformationScore: session.transformationScore ?? null,
         originalPromptPreview: session.originalPrompt.slice(0, 120),
         finalPromptPreview: session.finalPrompt.slice(0, 300),
       })

@@ -35,6 +35,10 @@ export interface ImprovePromptResponse {
   rounds: PromptRound[];
   finalPrompt: string;
   finalScore: number;
+  rawScore?: number;
+  roundPenalty?: number;
+  initialScore?: number | null;
+  transformationScore?: number | null;
 }
 
 export interface CreateSessionBody {
@@ -49,6 +53,8 @@ export interface CreateSessionBody {
   constraints?: string | null;
   finalPrompt: string;
   finalScore: number;
+  initialScore?: number | null;
+  transformationScore?: number | null;
   rounds: PromptRound[];
 }
 

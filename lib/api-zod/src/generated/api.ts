@@ -42,6 +42,10 @@ export const ImprovePromptResponse = zod.object({
   ),
   finalPrompt: zod.string(),
   finalScore: zod.number(),
+  rawScore: zod.number().optional(),
+  roundPenalty: zod.number().optional(),
+  initialScore: zod.number().nullable().optional(),
+  transformationScore: zod.number().nullable().optional(),
 });
 
 /**
@@ -67,6 +71,8 @@ export const CreateSessionBody = zod.object({
   constraints: zod.string().nullish(),
   finalPrompt: zod.string(),
   finalScore: zod.number(),
+  initialScore: zod.number().nullable().optional(),
+  transformationScore: zod.number().nullable().optional(),
   rounds: zod.array(
     zod.object({
       round: zod.number(),

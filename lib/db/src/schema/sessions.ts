@@ -9,6 +9,8 @@ export const sessionsTable = pgTable("sessions", {
   constraints: text("constraints"),
   finalPrompt: text("final_prompt").notNull(),
   finalScore: real("final_score").notNull(),
+  initialScore: real("initial_score"),
+  transformationScore: real("transformation_score"),
   roundCount: integer("round_count").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

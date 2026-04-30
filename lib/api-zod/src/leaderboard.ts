@@ -36,6 +36,8 @@ export const LeaderboardEntrySchema = zod.object({
   avatarColor: zod.string(),
   subject: zod.string(),
   score: zod.number(),
+  initialScore: zod.number().nullable().optional(),
+  transformationScore: zod.number().nullable().optional(),
   originalPromptPreview: zod.string(),
   finalPromptPreview: zod.string(),
   createdAt: zod.coerce.date(),

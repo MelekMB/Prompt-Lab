@@ -281,6 +281,7 @@ interface RoundResult {
 
 type Phase =
   | { status: "idle" }
+  | { status: "scoring_original" }
   | { status: "round_start"; round: number; totalRounds: number }
   | { status: "chatgpt_done"; round: number; totalRounds: number }
   | { status: "round_done"; round: number; totalRounds: number; completedRounds: RoundResult[] }
@@ -342,6 +343,8 @@ export function Home() {
     if (stored) { setIdentityState(stored); setNewHandle(stored.handle); setSelectedColor(stored.avatarColor); }
   }, []);
 
+  const [initialScoreValue, setInitialScoreValue] = useState<number | null>(null);
+
   const createSessionMutation = useCreateSession();
 
   const form = useForm<FormValues>({
@@ -366,7 +369,8 @@ export function Home() {
   };
 
   const onSubmit = async (data: FormValues) => {
-    setPhase({ status: "round_start", round: 1, totalRounds: data.rounds ?? 3 });
+    setPhase({ status: "scoring_original" });
+    setInitialScoreValue(null);
     const completedRounds: RoundResult[] = [];
 
     try {
@@ -397,12 +401,15 @@ export function Home() {
           try { event = JSON.parse(raw); } catch { continue; }
 
           switch (event.type) {
+            case "initial_scored":
+              setInitialScoreValue(event.initialScore as number);
+              break;
             case "round_start":
               setPhase({ status: "round_start", round: event.round as number, totalRounds: event.totalRounds as number });
               break;
             case "chatgpt_done":
               setPhase(prev => prev.status !== "idle" && prev.status !== "complete" && prev.status !== "error"
-                ? { ...prev, status: "chatgpt_done", round: event.round as number } : prev);
+                ? { status: "chatgpt_done", round: event.round as number, totalRounds: "totalRounds" in prev ? prev.totalRounds : (data.rounds ?? watchRounds) } : prev);
               break;
             case "round_done": {
               const rd = event.data as RoundResult;
@@ -442,7 +449,7 @@ export function Home() {
       const { result } = phase;
       const formData = form.getValues();
       createSessionMutation.mutate(
-        { data: { originalPrompt: result.originalPrompt, goal: formData.goal, audience: formData.audience, tone: formData.tone, constraints: formData.constraints, finalPrompt: result.finalPrompt, finalScore: result.finalScore, rounds: result.rounds } },
+        { data: { originalPrompt: result.originalPrompt, goal: formData.goal, audience: formData.audience, tone: formData.tone, constraints: formData.constraints, finalPrompt: result.finalPrompt, finalScore: result.finalScore, initialScore: result.initialScore ?? undefined, transformationScore: result.transformationScore ?? undefined, rounds: result.rounds } },
         {
           onSuccess: (session) => { setSavedSessionId(session.id); resolve(session.id); },
           onError: (e) => reject(e),
@@ -515,6 +522,7 @@ export function Home() {
   };
 
   const isRunning = phase.status !== "idle" && phase.status !== "complete" && phase.status !== "error";
+  const isScoringOriginal = phase.status === "scoring_original";
 
   const getCurrentRound = () => "round" in phase ? phase.round : 1;
   const getTotalRounds = () => "totalRounds" in phase ? phase.totalRounds : watchRounds;
@@ -522,6 +530,7 @@ export function Home() {
 
   const getStatusLabel = () => {
     switch (phase.status) {
+      case "scoring_original": return "Scoring your original prompt...";
       case "round_start": return "AI rewriting prompt...";
       case "chatgpt_done": return "Evaluating response quality...";
       case "round_done": return `Round ${phase.round} complete ✓`;
@@ -531,7 +540,8 @@ export function Home() {
   };
 
   const progressPct = isRunning
-    ? phase.status === "synthesizing" ? 95
+    ? isScoringOriginal ? 5
+    : phase.status === "synthesizing" ? 95
     : ((getCurrentRound() - (phase.status === "round_done" ? 0 : 0.5)) / getTotalRounds()) * 90
     : 0;
 
@@ -738,12 +748,24 @@ export function Home() {
                 </div>
                 <div>
                   <h3 className="font-bold text-base">
-                    {phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
+                    {isScoringOriginal ? "Analyzing Your Prompt" : phase.status === "synthesizing" ? "Synthesizing Final Prompt" : `Round ${getCurrentRound()} of ${getTotalRounds()}`}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1 font-mono">{getStatusLabel()}</p>
                 </div>
                 <div className="w-full max-w-xs space-y-1.5 text-left">
-                  {Array.from({ length: getTotalRounds() }).map((_, i) => {
+                  {/* Baseline scoring step */}
+                  <div className="flex items-center gap-2.5 text-xs font-mono">
+                    <div className={cn("w-5 h-5 rounded flex items-center justify-center text-[10px] font-bold flex-shrink-0",
+                      !isScoringOriginal ? "bg-primary text-primary-foreground" :
+                      "bg-primary/20 border border-primary text-primary animate-pulse")}>
+                      {!isScoringOriginal ? <Check className="w-3 h-3" /> : "S"}
+                    </div>
+                    <span className={!isScoringOriginal ? "text-foreground" : "text-primary"}>
+                      Baseline score
+                      {initialScoreValue !== null && <span className="ml-2 text-muted-foreground">— {initialScoreValue}/10</span>}
+                    </span>
+                  </div>
+                  {!isScoringOriginal && Array.from({ length: getTotalRounds() }).map((_, i) => {
                     const done = getCompletedRounds().find(r => r.round === i + 1);
                     const active = getCurrentRound() === i + 1 && phase.status !== "round_done";
                     return (
@@ -795,7 +817,7 @@ export function Home() {
                       <span className="font-mono font-bold text-primary text-sm">OPTIMIZED PROMPT</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      {phase.result.roundPenalty > 0 && (
+                      {(phase.result.roundPenalty ?? 0) > 0 && (
                         <div className="text-right">
                           <div className="flex items-center gap-1 text-[10px] font-mono text-muted-foreground">
                             <span className="text-gray-400">{phase.result.rawScore}/10</span>
@@ -807,6 +829,29 @@ export function Home() {
                       <ScoreRing score={phase.result.finalScore} />
                     </div>
                   </div>
+                  {/* Transformation score strip */}
+                  {phase.result.initialScore != null && phase.result.transformationScore != null && (
+                    <div className="border-b border-primary/10 px-4 py-2 flex items-center gap-3 bg-gradient-to-r from-violet-500/5 to-indigo-500/5">
+                      <div className="flex items-center gap-2 text-xs font-mono">
+                        <span className="text-muted-foreground/60">before</span>
+                        <span className="text-red-400/80 font-bold">{phase.result.initialScore.toFixed(1)}/10</span>
+                        <span className="text-muted-foreground/40">→</span>
+                        <span className="text-muted-foreground/60">after</span>
+                        <span className="text-green-400/80 font-bold">{phase.result.finalScore.toFixed(1)}/10</span>
+                      </div>
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <span className="text-[10px] text-muted-foreground/50 font-mono">transformation</span>
+                        <span className={cn(
+                          "font-mono font-black text-xs px-2 py-0.5 rounded-full border",
+                          phase.result.transformationScore >= 70 ? "text-green-400 bg-green-400/10 border-green-400/30" :
+                          phase.result.transformationScore >= 40 ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" :
+                          "text-orange-400 bg-orange-400/10 border-orange-400/30"
+                        )}>
+                          {phase.result.transformationScore.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  )}
                   <CardContent className="p-0">
                     <ScrollArea className="h-[260px] w-full bg-[#0a0a0f]">
                       <pre className="p-4 text-sm font-mono text-gray-300 whitespace-pre-wrap leading-relaxed">
@@ -832,6 +877,11 @@ export function Home() {
                           <Trophy className="w-3 h-3" />
                           On Leaderboard!
                         </Button>
+                      ) : phase.result.finalScore < 7 ? (
+                        <div className="flex items-center gap-1.5 text-[10px] font-mono text-muted-foreground/50 border border-border/20 rounded-lg px-2.5 h-8" title="Reach a final score of 7.0+ to qualify">
+                          <Trophy className="w-3 h-3" />
+                          Need 7.0+ to rank
+                        </div>
                       ) : (
                         <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
                           onClick={() => { setLbStatus("idle"); setShowLeaderboard(true); }}>
@@ -1012,9 +1062,26 @@ export function Home() {
                     style={{ backgroundColor: `${selectedColor}22`, borderColor: `${selectedColor}55`, color: selectedColor }}>
                     {newHandle.trim().charAt(0).toUpperCase()}
                   </div>
-                  <div>
+                  <div className="flex-1 min-w-0">
                     <p className="font-bold text-sm font-mono">{newHandle.trim()}</p>
-                    <p className="text-[10px] text-muted-foreground">{selectedSubject} · {phase.status === "complete" ? `${phase.result.finalScore}/10` : ""}</p>
+                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                      <span className="text-[10px] text-muted-foreground">{selectedSubject}</span>
+                      {phase.status === "complete" && phase.result.initialScore != null && phase.result.transformationScore != null && (
+                        <>
+                          <span className="text-[10px] font-mono text-muted-foreground/50">
+                            {phase.result.initialScore.toFixed(1)} → {phase.result.finalScore.toFixed(1)}/10
+                          </span>
+                          <span className={cn(
+                            "text-[10px] font-mono font-bold px-1.5 py-px rounded-full border",
+                            phase.result.transformationScore >= 70 ? "text-green-400 bg-green-400/10 border-green-400/30" :
+                            phase.result.transformationScore >= 40 ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" :
+                            "text-orange-400 bg-orange-400/10 border-orange-400/30"
+                          )}>
+                            {phase.result.transformationScore.toFixed(1)}%
+                          </span>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}

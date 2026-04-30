@@ -63,9 +63,12 @@ export interface ImprovementResult {
   rawScore: number;
   roundPenalty: number;
   finalScore: number;
+  initialScore: number;
+  transformationScore: number;
 }
 
 export type ProgressEvent =
+  | { type: "initial_scored"; initialScore: number }
   | { type: "round_start"; round: number; totalRounds: number }
   | { type: "chatgpt_done"; round: number }
   | { type: "round_done"; round: number; data: RoundResult }
@@ -213,6 +216,11 @@ export async function runImprovementLoop(
     constraints: params.constraints,
   });
 
+  // Score the original prompt before any rewriting begins
+  logger.info("Scoring original prompt");
+  const { score: initialScore } = await critiqueWithGemini(params.prompt);
+  emit({ type: "initial_scored", initialScore });
+
   const rounds: RoundResult[] = [];
   let currentPrompt = params.prompt;
   let lastCritique: string | undefined;
@@ -254,6 +262,15 @@ export async function runImprovementLoop(
   const roundPenalty = parseFloat(((roundCount - 1) * 0.3).toFixed(1));
   const finalScore = parseFloat(Math.max(1, rawScore - roundPenalty).toFixed(1));
 
+  // Transformation score: how much headroom was recovered from original to best round score.
+  // Formula: (bestScore - initialScore) / (10 - initialScore) * 100
+  // Normalised so that starting from a worse prompt isn't penalised.
+  const bestScore = Math.max(...rounds.map((r) => r.geminiScore));
+  const headroom = 10 - initialScore;
+  const transformationScore = headroom > 0
+    ? parseFloat(((bestScore - initialScore) / headroom * 100).toFixed(1))
+    : 0;
+
   const result: ImprovementResult = {
     originalPrompt: params.prompt,
     rounds,
@@ -261,6 +278,8 @@ export async function runImprovementLoop(
     rawScore,
     roundPenalty,
     finalScore,
+    initialScore,
+    transformationScore,
   };
 
   emit({ type: "complete", data: result });

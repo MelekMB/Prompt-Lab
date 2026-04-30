@@ -8,6 +8,8 @@ export const leaderboardEntriesTable = pgTable("leaderboard_entries", {
   avatarColor: text("avatar_color").notNull().default("#e05252"),
   subject: text("subject").notNull(),
   score: real("score").notNull(),
+  initialScore: real("initial_score"),
+  transformationScore: real("transformation_score"),
   originalPromptPreview: text("original_prompt_preview").notNull(),
   finalPromptPreview: text("final_prompt_preview").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

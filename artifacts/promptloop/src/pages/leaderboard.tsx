@@ -43,6 +43,25 @@ function ScoreBadge({ score }: { score: number }) {
   );
 }
 
+function TransformBadge({ transformationScore, initialScore, finalScore }: { transformationScore?: number | null; initialScore?: number | null; finalScore: number }) {
+  if (transformationScore == null) return <ScoreBadge score={finalScore} />;
+  const color = transformationScore >= 70 ? "text-green-400 bg-green-400/10 border-green-400/30" :
+                transformationScore >= 40 ? "text-yellow-400 bg-yellow-400/10 border-yellow-400/30" :
+                "text-orange-400 bg-orange-400/10 border-orange-400/30";
+  return (
+    <div className="flex flex-col items-end gap-0.5">
+      <span className={cn("font-mono font-black text-sm px-2.5 py-1 rounded-full border", color)}>
+        {transformationScore.toFixed(1)}%
+      </span>
+      {initialScore != null && (
+        <span className="text-[9px] font-mono text-muted-foreground/50 px-1">
+          {initialScore.toFixed(1)} → {finalScore.toFixed(1)}/10
+        </span>
+      )}
+    </div>
+  );
+}
+
 function timeAgo(date: Date) {
   const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
@@ -79,7 +98,7 @@ export function Leaderboard() {
           </span>
         </h1>
         <p className="text-muted-foreground text-sm max-w-sm mx-auto">
-          The highest-scoring prompts optimized in prompt labs. Submit yours after running.
+          Ranked by transformation — how far a rough prompt traveled. High final score required to qualify.
         </p>
       </div>
 
@@ -148,7 +167,7 @@ export function Leaderboard() {
 
                 {/* Score */}
                 <div className="flex-shrink-0">
-                  <ScoreBadge score={entry.score} />
+                  <TransformBadge transformationScore={entry.transformationScore} initialScore={entry.initialScore} finalScore={entry.score} />
                 </div>
               </div>
             );
@@ -176,7 +195,7 @@ export function Leaderboard() {
                 </p>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <ScoreBadge score={entry.score} />
+                <TransformBadge transformationScore={entry.transformationScore} initialScore={entry.initialScore} finalScore={entry.score} />
                 <ChevronRight className="w-3.5 h-3.5 text-muted-foreground/40" />
               </div>
             </div>

@@ -470,7 +470,7 @@ export function Home() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[5fr_7fr] gap-6 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
 
         {/* Left: Input */}
         <div className="space-y-3">

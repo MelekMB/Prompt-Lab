@@ -3,28 +3,30 @@
   z-index: 2147483647;
   display: none;
   align-items: center;
-  gap: 5px;
-  padding: 5px 10px 5px 7px;
+  gap: 3px;
+  padding: 3px 6px 3px 5px;
   background: linear-gradient(135deg, #c0392b, #e05252);
-  border-radius: 20px;
+  border-radius: 12px;
   cursor: pointer;
-  font-family: 'Space Mono', 'Courier New', monospace;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
   color: #fff;
-  letter-spacing: 0.03em;
-  box-shadow: 0 2px 12px rgba(192,57,43,0.45), 0 1px 3px rgba(0,0,0,0.3);
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 6px rgba(192,57,43,0.5), 0 1px 2px rgba(0,0,0,0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
   user-select: none;
   pointer-events: all;
   border: none;
   outline: none;
   white-space: nowrap;
+  opacity: 0.92;
 }
 
 #promptlabs-float-btn:hover {
+  opacity: 1;
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(192,57,43,0.6), 0 2px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 3px 10px rgba(192,57,43,0.6), 0 1px 3px rgba(0,0,0,0.25);
 }
 
 #promptlabs-float-btn:active {
@@ -35,14 +37,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
   flex-shrink: 0;
 }
 
 #promptlabs-float-btn .pl-icon svg {
-  width: 16px;
-  height: 16px;
+  width: 12px;
+  height: 12px;
+}
+
+#promptlabs-float-btn .pl-label {
+  font-size: 10px;
+}
+
+#promptlabs-float-btn .pl-dismiss {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  margin-left: 2px;
+  border-radius: 50%;
+  font-size: 10px;
+  line-height: 1;
+  opacity: 0.7;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: opacity 0.1s, background 0.1s;
+}
+
+#promptlabs-float-btn .pl-dismiss:hover {
+  opacity: 1;
+  background: rgba(255,255,255,0.2);
 }
 
 #promptlabs-float-btn.pl-loading {
@@ -59,9 +86,9 @@
 }
 
 #promptlabs-float-btn .pl-spinner {
-  width: 11px;
-  height: 11px;
-  border: 2px solid rgba(255,255,255,0.3);
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid rgba(255,255,255,0.3);
   border-top-color: #fff;
   border-radius: 50%;
   animation: pl-spin 0.7s linear infinite;
@@ -74,6 +101,10 @@
 }
 
 #promptlabs-float-btn.pl-loading .pl-icon {
+  display: none;
+}
+
+#promptlabs-float-btn.pl-loading .pl-dismiss {
   display: none;
 }
 

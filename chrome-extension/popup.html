@@ -22,7 +22,7 @@
     <span class="logo-text">prompt labs</span>
   </div>
 
-  <p class="tagline">Click <span class="badge">⚡ Improve</span> on any text field to optimize your prompt.</p>
+  <p class="tagline">Click <span class="badge">Improve</span> on any text field to optimize your prompt.</p>
 
   <div class="section-label">Settings</div>
 
@@ -34,6 +34,16 @@
   <div class="field">
     <label for="apiKey">API Key</label>
     <input type="text" id="apiKey" placeholder="Paste your extension API key" autocomplete="off" spellcheck="false" />
+  </div>
+
+  <div class="field">
+    <label for="rounds">Improvement rounds</label>
+    <select id="rounds">
+      <option value="1">1 round — fastest</option>
+      <option value="2" selected>2 rounds — balanced</option>
+      <option value="3">3 rounds — thorough</option>
+    </select>
+    <span class="field-hint">More rounds = better result, but slower</span>
   </div>
 
   <button id="saveBtn">Save settings</button>

@@ -1,11 +1,11 @@
 (function () {
   'use strict';
 
-  // Don't inject into our own extension pages
   if (document.querySelector('#promptlabs-float-btn')) return;
 
   let activeEl = null;
   let btn = null;
+  let dismissed = false; // hide until next field focus
 
   // ── Create the floating button ──────────────────────────────────────────────
   function createBtn() {
@@ -16,40 +16,62 @@
     el.innerHTML = `
       <div class="pl-spinner"></div>
       <div class="pl-icon">
-        <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 9.5L11.5 14L5 18.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M14 18.5H23" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M5 8L11 12L5 16" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M13 16H19" stroke="white" stroke-width="2.2" stroke-linecap="round"/>
         </svg>
       </div>
       <span class="pl-label">Improve</span>
+      <span class="pl-dismiss" title="Hide">✕</span>
     `;
-    el.addEventListener('mousedown', handleImprove);
+
+    // Improve click — only on the main button area, not the dismiss ×
+    el.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.pl-dismiss')) return;
+      e.stopPropagation();
+      e.preventDefault();
+      handleImprove();
+    });
+
+    // Dismiss ×
+    el.querySelector('.pl-dismiss').addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      dismissed = true;
+      el.style.display = 'none';
+    });
+
     document.body.appendChild(el);
     return el;
   }
 
-  // ── Position button just outside the bottom-right of the element ───────────
+  // ── Position button at top-right corner of the field, just above it ─────────
   function positionBtn(el) {
     const rect = el.getBoundingClientRect();
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
-    const btnW = 96;
-    const btnH = 30;
-    const gap = 6;
+    const btnW = 80;
+    const btnH = 22;
+    const gap = 4;
 
-    const vpW = document.documentElement.clientWidth;
     const vpH = document.documentElement.clientHeight;
+    const vpW = document.documentElement.clientWidth;
 
-    // Default: just below the field, aligned to its right edge
-    let top = rect.bottom + scrollY + gap;
+    // Default: just above the field, aligned to its right edge
+    let top = rect.top + scrollY - btnH - gap;
     let left = rect.right + scrollX - btnW;
 
-    // If no room below, put it just above the field
-    if (rect.bottom + gap + btnH > vpH) {
-      top = rect.top + scrollY - btnH - gap;
+    // If no room above, put it just below the field
+    if (rect.top - gap - btnH < 0) {
+      top = rect.bottom + scrollY + gap;
     }
 
-    // Clamp horizontally so button never goes off-screen
+    // If still off-screen below, overlap inside top-right corner
+    if (top > vpH + scrollY - btnH) {
+      top = rect.top + scrollY + gap;
+    }
+
+    // Clamp horizontally
     if (left + btnW > vpW + scrollX - 4) left = vpW + scrollX - btnW - 4;
     if (left < scrollX + 4) left = scrollX + 4;
 
@@ -60,69 +82,56 @@
 
   // ── Read text from any kind of field ────────────────────────────────────────
   function getText(el) {
-    if (el.isContentEditable) {
-      return (el.innerText || el.textContent || '').trim();
-    }
+    if (el.isContentEditable) return (el.innerText || el.textContent || '').trim();
     return (el.value || '').trim();
   }
 
-  // ── Write text back into any kind of field (React/Vue/plain) ─────────────
+  // ── Write text back (React/Vue/plain compatible) ─────────────────────────────
   function setText(el, text) {
     el.focus();
-
     if (el.isContentEditable) {
-      // Works with Gmail, ChatGPT, Notion, Replit chat, Linear, etc.
       const sel = window.getSelection();
       const range = document.createRange();
       range.selectNodeContents(el);
       sel.removeAllRanges();
       sel.addRange(range);
-      // insertText is deprecated but universally supported and fires the right events
       document.execCommand('insertText', false, text);
-      // Fallback if execCommand didn't work
       if ((el.innerText || '').trim() === '') {
         el.innerText = text;
         el.dispatchEvent(new Event('input', { bubbles: true }));
       }
     } else {
-      // input / textarea — handle React's synthetic event tracking
-      const proto =
-        el.tagName === 'TEXTAREA'
-          ? window.HTMLTextAreaElement.prototype
-          : window.HTMLInputElement.prototype;
+      const proto = el.tagName === 'TEXTAREA'
+        ? window.HTMLTextAreaElement.prototype
+        : window.HTMLInputElement.prototype;
       const nativeSetter = Object.getOwnPropertyDescriptor(proto, 'value')?.set;
-      if (nativeSetter) {
-        nativeSetter.call(el, text);
-      } else {
-        el.value = text;
-      }
+      if (nativeSetter) nativeSetter.call(el, text);
+      else el.value = text;
       el.dispatchEvent(new Event('input', { bubbles: true }));
       el.dispatchEvent(new Event('change', { bubbles: true }));
     }
   }
 
-  // ── Main improve handler ─────────────────────────────────────────────────
-  async function handleImprove(e) {
-    e.stopPropagation();
-    e.preventDefault();
-
+  // ── Main improve handler ─────────────────────────────────────────────────────
+  async function handleImprove() {
     const el = activeEl;
     if (!el) return;
 
     const text = getText(el);
     if (!text) {
-      flash('Nothing typed yet', 'pl-error');
+      flash('Nothing typed', 'pl-error');
       return;
     }
 
-    // Loading state
     btn.classList.add('pl-loading');
     setLabel('Improving…');
 
     try {
       const settings = await new Promise((resolve) =>
-        chrome.storage.sync.get(['apiUrl', 'apiKey'], resolve)
+        chrome.storage.sync.get(['apiUrl', 'apiKey', 'rounds'], resolve)
       );
+
+      const rounds = parseInt(settings.rounds, 10) || 2;
 
       const result = await new Promise((resolve, reject) => {
         chrome.runtime.sendMessage(
@@ -131,15 +140,12 @@
             prompt: text,
             apiUrl: settings.apiUrl || '',
             apiKey: settings.apiKey || '',
+            rounds,
           },
           (response) => {
-            if (chrome.runtime.lastError) {
-              reject(new Error(chrome.runtime.lastError.message));
-            } else if (response?.error) {
-              reject(new Error(response.error));
-            } else {
-              resolve(response?.result);
-            }
+            if (chrome.runtime.lastError) reject(new Error(chrome.runtime.lastError.message));
+            else if (response?.error) reject(new Error(response.error));
+            else resolve(response?.result);
           }
         );
       });
@@ -167,7 +173,7 @@
     }, 2500);
   }
 
-  // ── Focus / blur detection ───────────────────────────────────────────────
+  // ── Focus / blur detection ───────────────────────────────────────────────────
   function isTextTarget(el) {
     if (!el) return false;
     const tag = el.tagName?.toLowerCase();
@@ -184,17 +190,19 @@
     const el = e.target;
     if (!isTextTarget(el)) return;
     if (el.closest && el.closest('#promptlabs-float-btn')) return;
-    if (el.id === 'promptlabs-float-btn') return;
+
+    // Reset dismiss state when user focuses a new field
+    if (el !== activeEl) dismissed = false;
 
     activeEl = el;
     if (!btn) btn = createBtn();
-    // small delay so the field is fully painted
-    requestAnimationFrame(() => positionBtn(el));
+    if (!dismissed) {
+      requestAnimationFrame(() => positionBtn(el));
+    }
   }
 
   function onFocusOut(e) {
     if (!btn) return;
-    // Delay so a click on the button registers before we hide it
     setTimeout(() => {
       const hovered = btn.matches(':hover');
       const loading = btn.classList.contains('pl-loading');

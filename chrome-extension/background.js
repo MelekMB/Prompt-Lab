@@ -63,7 +63,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 });
 
-async function handleImprove({ prompt, apiUrl, apiKey }) {
+async function handleImprove({ prompt, apiUrl, apiKey, rounds }) {
   if (!apiUrl) {
     throw new Error('API URL not set. Click the Prompt Labs extension icon to configure it.');
   }
@@ -82,7 +82,7 @@ async function handleImprove({ prompt, apiUrl, apiKey }) {
         'Content-Type': 'application/json',
         'X-Extension-Key': apiKey,
       },
-      body: JSON.stringify({ prompt, rounds: 2 }),
+      body: JSON.stringify({ prompt, rounds: rounds || 2 }),
     });
   } catch (e) {
     throw new Error(`Cannot reach the Prompt Labs API. Check your API URL in the extension settings.`);

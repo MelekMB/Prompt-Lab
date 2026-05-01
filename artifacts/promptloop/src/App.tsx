@@ -8,6 +8,7 @@ import { Home } from "@/pages/home";
 import { History } from "@/pages/history";
 import { SessionView } from "@/pages/session";
 import { Leaderboard } from "@/pages/leaderboard";
+import AdminPage from "@/pages/admin";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,15 +21,23 @@ const queryClient = new QueryClient({
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={Home} />
-        <Route path="/history" component={History} />
-        <Route path="/session/:id" component={SessionView} />
-        <Route path="/leaderboard" component={Leaderboard} />
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {/* Admin — completely outside Layout, no nav, not linked anywhere */}
+      <Route path="/admin" component={AdminPage} />
+
+      {/* Regular app */}
+      <Route>
+        <Layout>
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/history" component={History} />
+            <Route path="/session/:id" component={SessionView} />
+            <Route path="/leaderboard" component={Leaderboard} />
+            <Route component={NotFound} />
+          </Switch>
+        </Layout>
+      </Route>
+    </Switch>
   );
 }
 

@@ -1,58 +1,3 @@
-// Draw the extension icon using OffscreenCanvas
-async function drawIcon() {
-  try {
-    const size = 128;
-    const canvas = new OffscreenCanvas(size, size);
-    const ctx = canvas.getContext('2d');
-
-    // Red gradient background
-    const grad = ctx.createLinearGradient(0, 0, size, size);
-    grad.addColorStop(0, '#c0392b');
-    grad.addColorStop(1, '#e05252');
-    ctx.fillStyle = grad;
-
-    // Rounded rect (manual, no roundRect needed)
-    const r = 28;
-    ctx.beginPath();
-    ctx.moveTo(r, 0);
-    ctx.lineTo(size - r, 0);
-    ctx.arcTo(size, 0, size, r, r);
-    ctx.lineTo(size, size - r);
-    ctx.arcTo(size, size, size - r, size, r);
-    ctx.lineTo(r, size);
-    ctx.arcTo(0, size, 0, size - r, r);
-    ctx.lineTo(0, r);
-    ctx.arcTo(0, 0, r, 0, r);
-    ctx.closePath();
-    ctx.fill();
-
-    // > arrow
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-    ctx.lineWidth = 11;
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.beginPath();
-    ctx.moveTo(30, 44);
-    ctx.lineTo(60, 64);
-    ctx.lineTo(30, 84);
-    ctx.stroke();
-
-    // _ bar
-    ctx.lineWidth = 13;
-    ctx.beginPath();
-    ctx.moveTo(70, 84);
-    ctx.lineTo(100, 84);
-    ctx.stroke();
-
-    const imageData = ctx.getImageData(0, 0, size, size);
-    await chrome.action.setIcon({ imageData });
-  } catch (e) {
-    // OffscreenCanvas not available — use default
-  }
-}
-
-drawIcon();
-
 // Handle messages from content script
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === 'IMPROVE_PROMPT') {
@@ -65,10 +10,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 async function handleImprove({ prompt, apiUrl, apiKey, rounds }) {
   if (!apiUrl) {
-    throw new Error('API URL not set. Click the Prompt Labs extension icon to configure it.');
+    throw new Error('API URL not set. Click the Prompt Labs icon to configure it.');
   }
   if (!apiKey) {
-    throw new Error('API key not set. Click the Prompt Labs extension icon to configure it.');
+    throw new Error('API key not set. Click the Prompt Labs icon to configure it.');
   }
 
   const base = apiUrl.replace(/\/$/, '');
@@ -85,7 +30,7 @@ async function handleImprove({ prompt, apiUrl, apiKey, rounds }) {
       body: JSON.stringify({ prompt, rounds: rounds || 2 }),
     });
   } catch (e) {
-    throw new Error(`Cannot reach the Prompt Labs API. Check your API URL in the extension settings.`);
+    throw new Error('Cannot reach the Prompt Labs API. Check your API URL in settings.');
   }
 
   if (!response.ok) {

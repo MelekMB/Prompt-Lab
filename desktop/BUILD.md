@@ -48,7 +48,7 @@ Click the menu bar / tray icon → **Settings…** and enter:
 ## Using it
 
 1. Select any text in any app (Word, Slack, VS Code, browser, anywhere)
-2. Press **⌘⇧I** (macOS) or **Ctrl+Shift+I** (Windows)
+2. Press **⌘I** (macOS) or **Ctrl+I** (Windows)
 3. A small overlay appears — your prompt is automatically improved and pasted back
 
 ## Build for both platforms via GitHub Actions (CI)

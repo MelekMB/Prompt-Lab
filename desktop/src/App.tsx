@@ -191,7 +191,7 @@ export default function App() {
           <div className="center-content">
             <Logo />
             <p className="status-text">Select text anywhere, then press</p>
-            <div className="hotkey">⌘ ⇧ I</div>
+            <div className="hotkey">⌘ I</div>
           </div>
         )}
 

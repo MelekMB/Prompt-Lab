@@ -116,13 +116,13 @@ fn main() {
         )
         .setup(|app| {
             // ── Register global shortcut ──────────────────────────────
-            app.global_shortcut().register("CmdOrCtrl+Shift+I")?;
+            app.global_shortcut().register("CmdOrCtrl+I")?;
 
             // ── System tray ───────────────────────────────────────────
             let improve = MenuItem::with_id(
                 app,
                 "improve",
-                "Improve Selected Text  ⌘⇧I",
+                "Improve Selected Text  ⌘I",
                 true,
                 None::<&str>,
             )?;

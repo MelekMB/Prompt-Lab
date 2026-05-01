@@ -28,23 +28,30 @@
     return el;
   }
 
-  // ── Position button at the bottom-right corner of the element ──────────────
+  // ── Position button just outside the bottom-right of the element ───────────
   function positionBtn(el) {
     const rect = el.getBoundingClientRect();
     const scrollX = window.scrollX || window.pageXOffset;
     const scrollY = window.scrollY || window.pageYOffset;
-    const btnW = 90;  // approximate button width
-    const btnH = 28;
-    const margin = 6;
+    const btnW = 96;
+    const btnH = 30;
+    const gap = 6;
 
-    let top = rect.bottom + scrollY - btnH - margin;
-    let left = rect.right + scrollX - btnW - margin;
-
-    // Clamp to viewport
     const vpW = document.documentElement.clientWidth;
-    if (left + btnW > vpW + scrollX) left = vpW + scrollX - btnW - 4;
+    const vpH = document.documentElement.clientHeight;
+
+    // Default: just below the field, aligned to its right edge
+    let top = rect.bottom + scrollY + gap;
+    let left = rect.right + scrollX - btnW;
+
+    // If no room below, put it just above the field
+    if (rect.bottom + gap + btnH > vpH) {
+      top = rect.top + scrollY - btnH - gap;
+    }
+
+    // Clamp horizontally so button never goes off-screen
+    if (left + btnW > vpW + scrollX - 4) left = vpW + scrollX - btnW - 4;
     if (left < scrollX + 4) left = scrollX + 4;
-    if (top < scrollY + 4) top = rect.bottom + scrollY + margin;
 
     btn.style.top = top + 'px';
     btn.style.left = left + 'px';

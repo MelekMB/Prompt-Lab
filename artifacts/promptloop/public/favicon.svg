@@ -1,3 +1,13 @@
 <svg width="180" height="180" viewBox="0 0 180 180" fill="none" xmlns="http://www.w3.org/2000/svg">
-<rect width="180" height="180" rx="36" fill="#FF3C00"/>
+  <rect width="180" height="180" rx="40" fill="url(#grad)"/>
+  <!-- > arrow -->
+  <path d="M45 67 L82 90 L45 113" stroke="white" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- _ bar -->
+  <path d="M95 113 H138" stroke="white" stroke-width="16" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="grad" x1="0" y1="0" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#c0392b"/>
+      <stop offset="100%" stop-color="#e05252"/>
+    </linearGradient>
+  </defs>
 </svg>

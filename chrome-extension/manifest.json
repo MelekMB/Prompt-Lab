@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt Labs",
+  "version": "1.0.0",
+  "description": "Instantly improve any prompt on any webpage. A ⚡ button appears on text fields — click it to get a better version.",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Prompt Labs"
+  }
+}

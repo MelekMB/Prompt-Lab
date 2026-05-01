@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prompt Labs</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div class="header">
+    <svg class="logo-icon" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="28" height="28" rx="7" fill="url(#g1)"/>
+      <path d="M7 10.5L12.5 14L7 17.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M14.5 17.5H21" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="g1" x1="0" y1="0" x2="28" y2="28" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stop-color="#c0392b"/>
+          <stop offset="100%" stop-color="#e05252"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <span class="logo-text">prompt labs</span>
+  </div>
+
+  <p class="tagline">Click <span class="badge">⚡ Improve</span> on any text field to optimize your prompt.</p>
+
+  <div class="section-label">Settings</div>
+
+  <div class="field">
+    <label for="apiUrl">API URL</label>
+    <input type="url" id="apiUrl" placeholder="https://your-app.replit.app" autocomplete="off" spellcheck="false" />
+  </div>
+
+  <div class="field">
+    <label for="apiKey">API Key</label>
+    <input type="text" id="apiKey" placeholder="Paste your extension API key" autocomplete="off" spellcheck="false" />
+  </div>
+
+  <button id="saveBtn">Save settings</button>
+
+  <div id="status" class="status"></div>
+
+  <div class="divider"></div>
+
+  <button id="testBtn" class="secondary">Test connection</button>
+
+  <script src="popup.js"></script>
+</body>
+</html>

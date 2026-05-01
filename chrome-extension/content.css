@@ -1,0 +1,82 @@
+#promptlabs-float-btn {
+  position: absolute;
+  z-index: 2147483647;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px 5px 7px;
+  background: linear-gradient(135deg, #c0392b, #e05252);
+  border-radius: 20px;
+  cursor: pointer;
+  font-family: 'Space Mono', 'Courier New', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.03em;
+  box-shadow: 0 2px 12px rgba(192,57,43,0.45), 0 1px 3px rgba(0,0,0,0.3);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+  user-select: none;
+  pointer-events: all;
+  border: none;
+  outline: none;
+  white-space: nowrap;
+}
+
+#promptlabs-float-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(192,57,43,0.6), 0 2px 4px rgba(0,0,0,0.3);
+}
+
+#promptlabs-float-btn:active {
+  transform: translateY(0);
+}
+
+#promptlabs-float-btn .pl-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+#promptlabs-float-btn .pl-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+#promptlabs-float-btn.pl-loading {
+  background: linear-gradient(135deg, #7f1d1d, #b91c1c);
+  pointer-events: none;
+}
+
+#promptlabs-float-btn.pl-done {
+  background: linear-gradient(135deg, #14532d, #16a34a);
+}
+
+#promptlabs-float-btn.pl-error {
+  background: linear-gradient(135deg, #1c1c1c, #3d3d3d);
+}
+
+#promptlabs-float-btn .pl-spinner {
+  width: 11px;
+  height: 11px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: pl-spin 0.7s linear infinite;
+  display: none;
+  flex-shrink: 0;
+}
+
+#promptlabs-float-btn.pl-loading .pl-spinner {
+  display: block;
+}
+
+#promptlabs-float-btn.pl-loading .pl-icon {
+  display: none;
+}
+
+@keyframes pl-spin {
+  to { transform: rotate(360deg); }
+}

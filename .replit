@@ -41,3 +41,8 @@ externalPort = 3001
 
 [nix]
 channel = "stable-25_05"
+
+[userenv]
+
+[userenv.shared]
+EXTENSION_API_KEY = "76cb5a956b58472db48cac675144e26c"

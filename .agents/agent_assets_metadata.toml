@@ -6,3 +6,9 @@ id = "slnvNiwFEW2pyexIDazji"
 uri = "file://screenshots/prompt-labs-ad-linkedin.jpg"
 type = "image"
 title = "Prompt Labs — LinkedIn Image (1200×628)"
+
+[[outputs]]
+id = "RhN4oJpTibn4IQ3I6t0rg"
+uri = "file://chrome-extension/prompt-labs-extension.tar.gz"
+type = "unspecified"
+title = "Prompt Labs Chrome Extension"

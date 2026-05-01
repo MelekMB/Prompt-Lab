@@ -39,12 +39,32 @@ app.use(
     },
   }),
 );
-app.use(cors());
+app.use(
+  cors({
+    origin: true,
+    credentials: true,
+  })
+);
 app.use(cookieParser(SESSION_SECRET));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(sessionIssuance);
+
+const EXTENSION_API_KEY = process.env.EXTENSION_API_KEY;
+
+function requireSessionOrExtensionKey(
+  req: Parameters<typeof requireSessionWithQuota>[0],
+  res: Parameters<typeof requireSessionWithQuota>[1],
+  next: Parameters<typeof requireSessionWithQuota>[2],
+): void {
+  const provided = req.headers["x-extension-key"];
+  if (EXTENSION_API_KEY && provided === EXTENSION_API_KEY) {
+    next();
+    return;
+  }
+  requireSessionWithQuota(req, res, next);
+}
 
 const improvePromptLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
@@ -54,7 +74,7 @@ const improvePromptLimiter = rateLimit({
   message: { error: "Too many requests. Please wait before trying again." },
 });
 
-app.use("/api/improve-prompt", improvePromptLimiter, requireSessionWithQuota);
+app.use("/api/improve-prompt", improvePromptLimiter, requireSessionOrExtensionKey);
 
 app.use("/api", router);
 

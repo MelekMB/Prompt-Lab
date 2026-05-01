@@ -1,0 +1,142 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 300px;
+  background: #0d0d0f;
+  color: #e8e8e8;
+  font-family: system-ui, -apple-system, sans-serif;
+  font-size: 13px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.logo-text {
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.tagline {
+  font-size: 12px;
+  color: rgba(255,255,255,0.45);
+  line-height: 1.5;
+}
+
+.badge {
+  display: inline-block;
+  background: linear-gradient(135deg, #c0392b, #e05252);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  letter-spacing: 0.02em;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+label {
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  font-weight: 500;
+}
+
+input {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 12px;
+  color: #fff;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: 'Courier New', monospace;
+}
+
+input:focus {
+  border-color: rgba(192,57,43,0.6);
+  background: rgba(192,57,43,0.05);
+}
+
+input::placeholder {
+  color: rgba(255,255,255,0.2);
+}
+
+button {
+  width: 100%;
+  padding: 9px;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: opacity 0.15s, transform 0.1s;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+#saveBtn {
+  background: linear-gradient(135deg, #c0392b, #e05252);
+  color: #fff;
+}
+
+#saveBtn:hover { opacity: 0.9; }
+
+button.secondary {
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  font-weight: 500;
+  font-size: 12px;
+}
+
+button.secondary:hover {
+  background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.8);
+}
+
+.status {
+  font-size: 12px;
+  min-height: 16px;
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+}
+
+.status.ok { color: #4ade80; }
+.status.err { color: #f87171; }
+
+.divider {
+  height: 1px;
+  background: rgba(255,255,255,0.06);
+}

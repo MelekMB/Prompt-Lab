@@ -158,3 +158,18 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+  # Security vulnerability fixes
+  # picomatch has two active major versions (2.x via micromatch, 4.x via vite)
+  # use path-specific overrides to avoid forcing an incompatible major version
+  "micromatch>picomatch": "^2.3.2"
+  "vite>picomatch": "^4.0.4"
+  # path-to-regexp DoS fix (express>router uses 8.x)
+  "router>path-to-regexp": "^8.4.0"
+  # lodash code injection fix (recharts depends on lodash)
+  lodash: "^4.18.0"
+  # yaml stack overflow fix (vite depends on yaml)
+  yaml: "^2.8.3"
+  # postcss XSS fix (vite depends on postcss)
+  postcss: "^8.5.10"
+  # brace-expansion DoS fix (orval>typedoc>minimatch depends on brace-expansion 2.x)
+  "minimatch>brace-expansion": "^2.0.3"

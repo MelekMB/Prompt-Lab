@@ -203,13 +203,19 @@
 
   function onFocusOut(e) {
     if (!btn) return;
+
+    // If focus moved directly to the button, never hide
+    if (e.relatedTarget && btn.contains(e.relatedTarget)) return;
+
     setTimeout(() => {
       const hovered = btn.matches(':hover');
       const loading = btn.classList.contains('pl-loading');
-      if (!hovered && !loading) {
+      // Don't hide if another text field now has focus
+      const stillInText = isTextTarget(document.activeElement);
+      if (!hovered && !loading && !stillInText) {
         btn.style.display = 'none';
       }
-    }, 180);
+    }, 300);
   }
 
   function onScrollOrResize() {

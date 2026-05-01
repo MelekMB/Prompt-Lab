@@ -97,23 +97,27 @@ async function handleImprove({ prompt, apiUrl, apiKey }) {
     throw new Error(msg);
   }
 
-  // Read the full SSE stream body
+  // Read the full SSE stream — waits until server closes the connection
   const body = await response.text();
 
-  // Parse SSE events — find the one with finalPrompt
+  // Parse SSE events — server sends { type: "complete", data: { finalPrompt, ... } }
   let finalPrompt = '';
+  let errorMsg = '';
   for (const line of body.split('\n')) {
     if (!line.startsWith('data: ')) continue;
     try {
       const evt = JSON.parse(line.slice(6));
-      if (evt.finalPrompt) {
-        finalPrompt = evt.finalPrompt;
+      if (evt.type === 'complete' && evt.data?.finalPrompt) {
+        finalPrompt = evt.data.finalPrompt;
+      }
+      if (evt.type === 'error' && evt.message) {
+        errorMsg = evt.message;
       }
     } catch {}
   }
 
   if (!finalPrompt) {
-    throw new Error('No improved prompt returned. Please try again.');
+    throw new Error(errorMsg || 'No improved prompt returned. Please try again.');
   }
 
   return { result: finalPrompt };

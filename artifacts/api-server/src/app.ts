@@ -1,12 +1,22 @@
 import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
+import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import { join } from "path";
 import { fileURLToPath } from "url";
 import router from "./routes";
 import { logger } from "./lib/logger";
+import { sessionIssuance, requireSessionWithQuota } from "./lib/session-quota";
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
+
+const SESSION_SECRET =
+  process.env.SESSION_SECRET ?? (() => {
+    const generated = Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    logger.warn("SESSION_SECRET env var not set — using ephemeral secret. Cookies will be invalidated on restart.");
+    return generated;
+  })();
 
 const app: Express = express();
 
@@ -30,8 +40,21 @@ app.use(
   }),
 );
 app.use(cors());
+app.use(cookieParser(SESSION_SECRET));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(sessionIssuance);
+
+const improvePromptLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Please wait before trying again." },
+});
+
+app.use("/api/improve-prompt", improvePromptLimiter, requireSessionWithQuota);
 
 app.use("/api", router);
 

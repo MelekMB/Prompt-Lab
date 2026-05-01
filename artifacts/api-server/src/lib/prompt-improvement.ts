@@ -73,21 +73,25 @@ function buildContextString(opts: {
 async function improveWithChatGPT(
   prompt: string,
   context: string,
+  signal: AbortSignal,
   geminiCritique?: string
 ): Promise<{ improvedPrompt: string; summary: string }> {
   const userContent = geminiCritique
     ? `Here is a prompt that needs improvement:\n\n${prompt}${context}\n\nAn expert reviewer gave this critique:\n${geminiCritique}\n\nPlease improve the prompt based on this critique.`
     : `Here is a prompt that needs improvement:\n\n${prompt}${context}\n\nPlease improve it to be clearer, more specific, and more effective.`;
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5.4",
-    max_completion_tokens: 4096,
-    messages: [
-      { role: "system", content: OPENAI_SYSTEM_PROMPT },
-      { role: "user", content: userContent },
-    ],
-    response_format: { type: "json_object" },
-  });
+  const response = await openai.chat.completions.create(
+    {
+      model: "gpt-5.4",
+      max_completion_tokens: 4096,
+      messages: [
+        { role: "system", content: OPENAI_SYSTEM_PROMPT },
+        { role: "user", content: userContent },
+      ],
+      response_format: { type: "json_object" },
+    },
+    { signal }
+  );
 
   const content = response.choices[0]?.message?.content ?? "{}";
   const parsed = JSON.parse(content) as {
@@ -106,7 +110,7 @@ async function improveWithChatGPT(
   };
 }
 
-async function critiqueWithGemini(prompt: string): Promise<{ critique: string }> {
+async function critiqueWithGemini(prompt: string, signal: AbortSignal): Promise<{ critique: string }> {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
     contents: [
@@ -118,6 +122,7 @@ async function critiqueWithGemini(prompt: string): Promise<{ critique: string }>
     config: {
       responseMimeType: "application/json",
       maxOutputTokens: 2048,
+      abortSignal: signal,
     },
   });
 
@@ -138,7 +143,8 @@ async function critiqueWithGemini(prompt: string): Promise<{ critique: string }>
 
 async function synthesizeFinal(
   originalPrompt: string,
-  rounds: RoundResult[]
+  rounds: RoundResult[],
+  signal: AbortSignal
 ): Promise<string> {
   const roundsSummary = rounds
     .map(
@@ -147,18 +153,21 @@ async function synthesizeFinal(
     )
     .join("\n\n---\n\n");
 
-  const response = await openai.chat.completions.create({
-    model: "gpt-5.4",
-    max_completion_tokens: 4096,
-    messages: [
-      { role: "system", content: FINAL_SYNTHESIS_PROMPT },
-      {
-        role: "user",
-        content: `Original prompt:\n${originalPrompt}\n\nIterative improvements:\n${roundsSummary}\n\nCreate the final, definitively optimized prompt with the labeled sections.`,
-      },
-    ],
-    response_format: { type: "json_object" },
-  });
+  const response = await openai.chat.completions.create(
+    {
+      model: "gpt-5.4",
+      max_completion_tokens: 4096,
+      messages: [
+        { role: "system", content: FINAL_SYNTHESIS_PROMPT },
+        {
+          role: "user",
+          content: `Original prompt:\n${originalPrompt}\n\nIterative improvements:\n${roundsSummary}\n\nCreate the final, definitively optimized prompt with the labeled sections.`,
+        },
+      ],
+      response_format: { type: "json_object" },
+    },
+    { signal }
+  );
 
   const content = response.choices[0]?.message?.content ?? "{}";
   const parsed = JSON.parse(content) as { final_prompt?: string };
@@ -174,7 +183,8 @@ export async function runImprovementLoop(
     constraints?: string;
     rounds?: number;
   },
-  onProgress?: (event: ProgressEvent) => void
+  onProgress?: (event: ProgressEvent) => void,
+  signal?: AbortSignal
 ): Promise<ImprovementResult> {
   const emit = (event: ProgressEvent) => onProgress?.(event);
   const roundCount = Math.min(5, Math.max(1, params.rounds ?? 3));
@@ -185,23 +195,30 @@ export async function runImprovementLoop(
     constraints: params.constraints,
   });
 
+  const abortSignal = signal
+    ? AbortSignal.any([signal, AbortSignal.timeout(300_000)])
+    : AbortSignal.timeout(300_000);
+
   const rounds: RoundResult[] = [];
   let currentPrompt = params.prompt;
   let lastCritique: string | undefined;
 
   for (let i = 1; i <= roundCount; i++) {
+    if (abortSignal.aborted) break;
+
     logger.info({ round: i, totalRounds: roundCount }, "Running improvement round");
     emit({ type: "round_start", round: i, totalRounds: roundCount });
 
     const { improvedPrompt, summary } = await improveWithChatGPT(
       currentPrompt,
       i === 1 ? context : "",
+      abortSignal,
       lastCritique
     );
 
     emit({ type: "chatgpt_done", round: i });
 
-    const { critique } = await critiqueWithGemini(improvedPrompt);
+    const { critique } = await critiqueWithGemini(improvedPrompt, abortSignal);
 
     const roundResult: RoundResult = {
       round: i,
@@ -217,7 +234,7 @@ export async function runImprovementLoop(
   }
 
   emit({ type: "synthesizing" });
-  const finalPrompt = await synthesizeFinal(params.prompt, rounds);
+  const finalPrompt = await synthesizeFinal(params.prompt, rounds, abortSignal);
 
   const result: ImprovementResult = {
     originalPrompt: params.prompt,

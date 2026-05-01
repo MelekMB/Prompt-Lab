@@ -27,11 +27,26 @@ router.post("/improve-prompt", async (req, res): Promise<void> => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
+  const controller = new AbortController();
+  req.on("close", () => {
+    if (!res.writableEnded) {
+      req.log.info("Client disconnected — aborting prompt improvement");
+      controller.abort();
+    }
+  });
+
   try {
-    await runImprovementLoop(parsed.data, (event) => send(event));
-  } catch (err) {
-    req.log.error({ err }, "Prompt improvement failed");
-    send({ type: "error", message: "Prompt improvement failed. Please try again." });
+    await runImprovementLoop(parsed.data, (event) => send(event), controller.signal);
+  } catch (err: unknown) {
+    const isAbort =
+      controller.signal.aborted ||
+      (err instanceof Error && (err.name === "AbortError" || err.name === "TimeoutError"));
+    if (isAbort) {
+      req.log.info({ aborted: controller.signal.aborted }, "Prompt improvement cancelled (disconnect or timeout)");
+    } else {
+      req.log.error({ err }, "Prompt improvement failed");
+      send({ type: "error", message: "Prompt improvement failed. Please try again." });
+    }
   } finally {
     res.end();
   }

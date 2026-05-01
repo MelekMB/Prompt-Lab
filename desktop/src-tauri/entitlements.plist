@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Required for simulating key presses (Cmd+C / Cmd+V) via enigo -->
+  <key>com.apple.security.temporary-exception.mach-lookup.global-name</key>
+  <array/>
+  <!-- Allow outbound network requests to the Prompt Labs API -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+</dict>
+</plist>

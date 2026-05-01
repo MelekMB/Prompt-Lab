@@ -1,0 +1,18 @@
+{
+  "identifier": "default",
+  "description": "Prompt Labs overlay window permissions",
+  "windows": ["overlay"],
+  "permissions": [
+    "core:default",
+    "core:window:allow-hide",
+    "core:window:allow-show",
+    "core:window:allow-set-focus",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "clipboard-manager:allow-read-text",
+    "clipboard-manager:allow-write-text",
+    "global-shortcut:allow-register",
+    "global-shortcut:allow-unregister",
+    "global-shortcut:allow-is-registered"
+  ]
+}

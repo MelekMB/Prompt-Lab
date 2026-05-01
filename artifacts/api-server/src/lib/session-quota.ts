@@ -3,7 +3,7 @@ import { type Request, type Response, type NextFunction } from "express";
 
 const QUOTA_WINDOW_MS = 60 * 60 * 1000;
 const QUOTA_MAX_REQUESTS = 20;
-const SESSION_COOKIE = "_sid";
+export const SESSION_COOKIE = "_sid";
 const SESSION_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 
 interface QuotaEntry {
@@ -22,9 +22,15 @@ setInterval(() => {
   }
 }, QUOTA_WINDOW_MS);
 
+export function getRequestSid(req: Request): string | undefined {
+  return (req as Request & { _sid?: string })._sid;
+}
+
 export function sessionIssuance(req: Request, res: Response, next: NextFunction): void {
   const existing = req.signedCookies?.[SESSION_COOKIE] as string | undefined;
-  if (!existing) {
+  if (existing) {
+    (req as Request & { _sid?: string })._sid = existing;
+  } else {
     const newId = randomUUID();
     res.cookie(SESSION_COOKIE, newId, {
       httpOnly: true,
@@ -32,6 +38,7 @@ export function sessionIssuance(req: Request, res: Response, next: NextFunction)
       signed: true,
       maxAge: SESSION_MAX_AGE_MS,
     });
+    (req as Request & { _sid?: string })._sid = newId;
   }
   next();
 }

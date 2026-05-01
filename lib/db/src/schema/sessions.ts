@@ -2,6 +2,7 @@ import { pgTable, serial, text, real, integer, timestamp } from "drizzle-orm/pg-
 
 export const sessionsTable = pgTable("sessions", {
   id: serial("id").primaryKey(),
+  ownerSid: text("owner_sid").notNull(),
   originalPrompt: text("original_prompt").notNull(),
   goal: text("goal"),
   audience: text("audience"),

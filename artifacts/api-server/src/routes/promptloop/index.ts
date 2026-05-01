@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, sql, avg, max, desc } from "drizzle-orm";
+import { eq, sql, avg, max, desc, and } from "drizzle-orm";
 import { db, sessionsTable, sessionRoundsTable, leaderboardEntriesTable } from "@workspace/db";
 import {
   ImprovePromptBody,
@@ -9,6 +9,7 @@ import {
   SubmitLeaderboardBody,
 } from "@workspace/api-zod";
 import { runImprovementLoop } from "../../lib/prompt-improvement";
+import { getRequestSid } from "../../lib/session-quota";
 
 const router: IRouter = Router();
 
@@ -53,16 +54,25 @@ router.post("/improve-prompt", async (req, res): Promise<void> => {
 });
 
 router.get("/sessions/stats", async (req, res): Promise<void> => {
+  const ownerSid = getRequestSid(req);
+
   try {
+    const ownerFilter = ownerSid ? eq(sessionsTable.ownerSid, ownerSid) : sql`FALSE`;
+
     const [stats] = await db
       .select({
         totalSessions: sql<number>`count(*)::int`,
         averageFinalScore: avg(sessionsTable.finalScore),
         topFinalScore: max(sessionsTable.finalScore),
       })
-      .from(sessionsTable);
+      .from(sessionsTable)
+      .where(ownerFilter);
 
-    const allSessions = await db.select({ finalScore: sessionsTable.finalScore }).from(sessionsTable);
+    const allSessions = await db
+      .select({ finalScore: sessionsTable.finalScore })
+      .from(sessionsTable)
+      .where(ownerFilter);
+
     const avgImprovement = allSessions.length > 0
       ? allSessions.reduce((acc, s) => acc + s.finalScore, 0) / allSessions.length
       : 0;
@@ -80,10 +90,18 @@ router.get("/sessions/stats", async (req, res): Promise<void> => {
 });
 
 router.get("/sessions", async (req, res): Promise<void> => {
+  const ownerSid = getRequestSid(req);
+
+  if (!ownerSid) {
+    res.json([]);
+    return;
+  }
+
   try {
     const sessions = await db
       .select()
       .from(sessionsTable)
+      .where(eq(sessionsTable.ownerSid, ownerSid))
       .orderBy(sql`${sessionsTable.createdAt} DESC`);
 
     res.json(
@@ -108,12 +126,20 @@ router.post("/sessions", async (req, res): Promise<void> => {
     return;
   }
 
+  const ownerSid = getRequestSid(req);
+
+  if (!ownerSid) {
+    res.status(401).json({ error: "No valid session. Please load the app in a browser first." });
+    return;
+  }
+
   try {
     const { rounds, ...sessionData } = parsed.data;
 
     const [session] = await db
       .insert(sessionsTable)
       .values({
+        ownerSid,
         originalPrompt: sessionData.originalPrompt,
         goal: sessionData.goal ?? null,
         audience: sessionData.audience ?? null,
@@ -157,11 +183,18 @@ router.get("/sessions/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const ownerSid = getRequestSid(req);
+
+  if (!ownerSid) {
+    res.status(404).json({ error: "Session not found" });
+    return;
+  }
+
   try {
     const [session] = await db
       .select()
       .from(sessionsTable)
-      .where(eq(sessionsTable.id, params.data.id));
+      .where(and(eq(sessionsTable.id, params.data.id), eq(sessionsTable.ownerSid, ownerSid)));
 
     if (!session) {
       res.status(404).json({ error: "Session not found" });
@@ -188,10 +221,17 @@ router.delete("/sessions/:id", async (req, res): Promise<void> => {
     return;
   }
 
+  const ownerSid = getRequestSid(req);
+
+  if (!ownerSid) {
+    res.status(404).json({ error: "Session not found" });
+    return;
+  }
+
   try {
     const [deleted] = await db
       .delete(sessionsTable)
-      .where(eq(sessionsTable.id, params.data.id))
+      .where(and(eq(sessionsTable.id, params.data.id), eq(sessionsTable.ownerSid, ownerSid)))
       .returning();
 
     if (!deleted) {
@@ -242,13 +282,20 @@ router.post("/leaderboard", async (req, res): Promise<void> => {
     return;
   }
 
+  const ownerSid = getRequestSid(req);
+
+  if (!ownerSid) {
+    res.status(401).json({ error: "No valid session. Please load the app in a browser first." });
+    return;
+  }
+
   try {
     const { sessionId, handle, avatarColor, subject } = parsed.data;
 
     const [session] = await db
       .select()
       .from(sessionsTable)
-      .where(eq(sessionsTable.id, sessionId));
+      .where(and(eq(sessionsTable.id, sessionId), eq(sessionsTable.ownerSid, ownerSid)));
 
     if (!session) {
       res.status(404).json({ error: "Session not found" });

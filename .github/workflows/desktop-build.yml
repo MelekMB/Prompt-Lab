@@ -1,94 +1,20 @@
-name: Build Desktop App
+#!/usr/bin/env python3
+import struct, zlib, sys, os
 
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - "desktop-v*"
+def make_png(path, w, h, r, g, b):
+    def chunk(name, data):
+        crc = zlib.crc32(name + data) & 0xFFFFFFFF
+        return struct.pack(">I", len(data)) + name + data + struct.pack(">I", crc)
+    ihdr_data = struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)
+    raw_rows = b"".join(b"\x00" + bytes([r, g, b] * w) for _ in range(h))
+    with open(path, "wb") as f:
+        f.write(b"\x89PNG\r\n\x1a\n")
+        f.write(chunk(b"IHDR", ihdr_data))
+        f.write(chunk(b"IDAT", zlib.compress(raw_rows)))
+        f.write(chunk(b"IEND", b""))
 
-jobs:
-  build-macos:
-    name: macOS (${{ matrix.target }})
-    runs-on: macos-latest
-    strategy:
-      matrix:
-        target:
-          - aarch64-apple-darwin
-          - x86_64-apple-darwin
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: desktop/src-tauri
-      - name: Install frontend dependencies
-        working-directory: desktop
-        run: pnpm install --no-frozen-lockfile
-      - name: Generate app icons
-        working-directory: desktop
-        run: |
-          mkdir -p src-tauri/icons
-          convert -size 512x512 xc:'#c0392b' /tmp/icon-src.png
-          pnpm tauri icon /tmp/icon-src.png
-      - name: Build Tauri app
-        working-directory: desktop
-        run: pnpm tauri build --target ${{ matrix.target }}
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
-      - name: Upload .dmg
-        uses: actions/upload-artifact@v4
-        with:
-          name: Prompt-Labs-macOS-${{ matrix.target }}
-          path: desktop/src-tauri/target/${{ matrix.target }}/release/bundle/dmg/*.dmg
-
-  build-windows:
-    name: Windows (x64)
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - uses: dtolnay/rust-toolchain@stable
-      - uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: desktop/src-tauri
-      - name: Install frontend dependencies
-        working-directory: desktop
-        run: pnpm install --no-frozen-lockfile
-      - name: Generate app icons
-        working-directory: desktop
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path src-tauri/icons
-          Add-Type -AssemblyName System.Drawing
-          $bmp = New-Object System.Drawing.Bitmap(512, 512)
-          $g = [System.Drawing.Graphics]::FromImage($bmp)
-          $g.Clear([System.Drawing.Color]::FromArgb(192, 57, 43))
-          $g.Dispose()
-          $bmp.Save("$env:TEMP\icon-src.png", [System.Drawing.Imaging.ImageFormat]::Png)
-          $bmp.Dispose()
-          pnpm tauri icon "$env:TEMP\icon-src.png"
-      - name: Build Tauri app
-        working-directory: desktop
-        run: pnpm tauri build
-        env:
-          TAURI_SIGNING_PRIVATE_KEY: ""
-      - name: Upload installer
-        uses: actions/upload-artifact@v4
-        with:
-          name: Prompt-Labs-Windows-x64
-          path: |
-            desktop/src-tauri/target/release/bundle/msi/*.msi
-            desktop/src-tauri/target/release/bundle/nsis/*.exe
+if __name__ == "__main__":
+    out = sys.argv[1] if len(sys.argv) > 1 else "icon-src.png"
+    os.makedirs(os.path.dirname(os.path.abspath(out)), exist_ok=True)
+    make_png(out, 512, 512, 192, 57, 43)
+    print(f"Created icon source: {out}")
